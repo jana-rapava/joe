@@ -25,12 +25,7 @@ static void serverActor(
             zmsg_print(msg_);
             char* command_ = zmsg_popstr(msg_);
             if(strcmp(command_, "QUIT") == 0) {
-                zsys_debug("%s: quit");
-
-                zmsg_t* msg_ = zmsg_new();
-                zmsg_addstr(msg_, "OK");
-                zmsg_send(&msg_, pipe_);
-
+                zsys_debug("%s: quit", name_);
                 zstr_free(&command_);
                 break;
             }
@@ -51,8 +46,8 @@ static void serverActor(
                 zmsg_addstr(response, "READY");
             }
             else {
-                zmsg_addstr (response, "ERROR");
-                zmsg_addstr (response, "Invalid protocol command");
+                zmsg_addstr(response, "ERROR");
+                zmsg_addstr(response, "Invalid protocol command");
             }
             zmsg_send (&response, server_);
             zstr_free(&command);
@@ -62,6 +57,10 @@ static void serverActor(
     zpoller_destroy(&poller_);
     zsock_destroy(&server_);
     free(name_);
+
+    zclock_sleep(1000);
+
+    zsock_signal(pipe_, 0);
 }
 
 int main () {
@@ -70,8 +69,9 @@ int main () {
     zactor_t *server_ = zactor_new(serverActor, "server1");
     zclock_sleep(10000);
     zstr_sendx(server_, "QUIT", NULL);
-    char* message_ = zstr_recv(server_);
-    zstr_free(&message_);
+//    char* message_ = zstr_recv(server_);
+//    zstr_free(&message_);
+    zsock_wait(server_);
     zsys_debug("Process ended");
     zactor_destroy(&server_);
 
