@@ -3,7 +3,7 @@
 set -x
 set -e
 
-if [ "$BUILD_TYPE" == "default" ]; then
+if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "valgrind" ]; then
     mkdir tmp
     BUILD_PREFIX=$PWD/tmp
 
@@ -73,7 +73,12 @@ if [ "$BUILD_TYPE" == "default" ]; then
 
     if true ; then
         # Simple build
-        make prefix=${BUILD_PREFIX} all
+        case "$BUILD_TYPE" in
+            "valgrind")
+                make prefix=${BUILD_PREFIX} memcheck ;;
+            "default")
+                make prefix=${BUILD_PREFIX} all ;;
+        esac
     else
         # Build and check this project
         ./autogen.sh 2> /dev/null

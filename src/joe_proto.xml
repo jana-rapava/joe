@@ -1,0 +1,20 @@
+<class
+    name = "joe_proto"
+    signature = "0"
+    title = "joe example protocol"
+    script = "zproto_codec_c"
+    package_dir = "../include"
+    source_dir = "."
+    >
+
+    <message name = "HELLO" type = "string">
+        <field name = "filename" type = "string" />
+        <field name = "aux" type = "hash" />
+    </message>
+
+    <message name = "READY" />
+    <message name = "ERROR" >
+        <field name = "reason" type = "string" />
+    </message>
+
+</class>
