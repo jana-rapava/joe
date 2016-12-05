@@ -22,7 +22,7 @@
 @end
 */
 
-#include "../include/joe_proto.h"
+#include "joe_proto.h"
 
 //  Structure of our class
 
@@ -281,6 +281,7 @@ joe_proto_recv (joe_proto_t *self, zsock_t *input)
             break;
 
         case JOE_PROTO_READY:
+            GET_STRING (self->filename);
             break;
 
         case JOE_PROTO_ERROR:
@@ -332,6 +333,9 @@ joe_proto_send (joe_proto_t *self, zsock_t *output)
             }
             frame_size += self->aux_bytes;
             break;
+        case JOE_PROTO_READY:
+            frame_size += 1 + strlen (self->filename);
+            break;
         case JOE_PROTO_ERROR:
             frame_size += 1 + strlen (self->reason);
             break;
@@ -358,6 +362,10 @@ joe_proto_send (joe_proto_t *self, zsock_t *output)
             }
             else
                 PUT_NUMBER4 (0);    //  Empty hash
+            break;
+
+        case JOE_PROTO_READY:
+            PUT_STRING (self->filename);
             break;
 
         case JOE_PROTO_ERROR:
@@ -397,6 +405,7 @@ joe_proto_print (joe_proto_t *self)
 
         case JOE_PROTO_READY:
             zsys_debug ("JOE_PROTO_READY:");
+            zsys_debug ("    filename='%s'", self->filename);
             break;
 
         case JOE_PROTO_ERROR:
@@ -598,6 +607,7 @@ joe_proto_test (bool verbose)
     }
     joe_proto_set_id (self, JOE_PROTO_READY);
 
+    joe_proto_set_filename (self, "Life is short but Now lasts for ever");
     //  Send twice
     joe_proto_send (self, output);
     joe_proto_send (self, output);
@@ -605,6 +615,7 @@ joe_proto_test (bool verbose)
     for (instance = 0; instance < 2; instance++) {
         joe_proto_recv (self, input);
         assert (joe_proto_routing_id (self));
+        assert (streq (joe_proto_filename (self), "Life is short but Now lasts for ever"));
     }
     joe_proto_set_id (self, JOE_PROTO_ERROR);
 

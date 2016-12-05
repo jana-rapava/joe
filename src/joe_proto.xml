@@ -3,7 +3,7 @@
     signature = "0"
     title = "joe example protocol"
     script = "zproto_codec_c"
-    package_dir = "../include"
+    package_dir = "."
     source_dir = "."
     >
 
@@ -12,7 +12,10 @@
         <field name = "aux" type = "hash" />
     </message>
 
-    <message name = "READY" />
+    <message name = "READY" >
+        <field name = "filename" type = "string" />
+    </message>
+    
     <message name = "ERROR" >
         <field name = "reason" type = "string" />
     </message>

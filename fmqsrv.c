@@ -2,6 +2,8 @@
 #include <malloc.h>
 #include <string.h>
 
+#include "joe_proto.h"
+
 static void serverActor(
         zsock_t* pipe_,
         void* udata_) {
@@ -32,34 +34,30 @@ static void serverActor(
             zstr_free(&command_);
         }
         else if(which_ == server_) {
-            // server - receive the REQUEST
-            zmsg_t *msg2 = zmsg_recv(server_);
-            zmsg_print(msg2);
-            zframe_t *routing_id = zmsg_pop (msg2);
-            char* command = zmsg_popstr(msg2);
-            zmsg_destroy(&msg2);
+            joe_proto_t* message_ = joe_proto_new();
+            joe_proto_recv(message_, server_);
+            joe_proto_print(message_);
 
-            // server response
-            zmsg_t *response = zmsg_new ();
-            zmsg_add (response, routing_id);
-            if(strcmp(command, "HELLO") == 0) {
-                zmsg_addstr(response, "READY");
+            joe_proto_t* response_ = joe_proto_new();
+            joe_proto_set_routing_id(response_, joe_proto_routing_id(message_));
+            if(joe_proto_id(message_) == JOE_PROTO_HELLO) {
+                joe_proto_set_id(response_, JOE_PROTO_READY);
+                joe_proto_set_filename(response_, joe_proto_filename(message_));
             }
             else {
-                zmsg_addstr(response, "ERROR");
-                zmsg_addstr(response, "Invalid protocol command");
+                joe_proto_set_id(response_, JOE_PROTO_ERROR);
+                joe_proto_set_reason(response_, "Invalid protocol command");
             }
-            zmsg_send (&response, server_);
-            zstr_free(&command);
+            joe_proto_send(response_, server_);
+
+            joe_proto_destroy(&message_);
+            joe_proto_destroy(&response_);
         }
     }
 
     zpoller_destroy(&poller_);
     zsock_destroy(&server_);
     free(name_);
-
-    zclock_sleep(1000);
-
     zsock_signal(pipe_, 0);
 }
 
@@ -69,8 +67,6 @@ int main () {
     zactor_t *server_ = zactor_new(serverActor, "server1");
     zclock_sleep(10000);
     zstr_sendx(server_, "QUIT", NULL);
-//    char* message_ = zstr_recv(server_);
-//    zstr_free(&message_);
     zsock_wait(server_);
     zsys_debug("Process ended");
     zactor_destroy(&server_);

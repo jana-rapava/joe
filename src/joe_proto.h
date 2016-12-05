@@ -25,6 +25,7 @@
         aux                 hash        
 
     READY - 
+        filename            string      
 
     ERROR - 
         reason              string      

@@ -11,7 +11,8 @@ The following ABNF grammar defines the joe example protocol:
 
     ;  No description                                                        
 
-    READY           = signature %d2
+    READY           = signature %d2 filename
+    filename        = string                ; 
 
     ;  No description                                                        
 
