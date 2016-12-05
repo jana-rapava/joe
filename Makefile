@@ -11,6 +11,7 @@ CC = gcc
 CXX= g++
 LD = ld
 prefix ?= /usr/local
+CFLAGS_DEBUG = -g3 -gdwarf-2 -O0
 CFLAGS = -I$(prefix)/include -I./src -I./include -I./ -std=c99 -D__EXTENSIONS__ -D_GNU_SOURCE
 CXXFLAGS = -I$(prefix)/include -I./src -I./include -I./ -std=c++99 -D__EXTENSIONS__ -D_GNU_SOURCE
 LIBS = -lczmq -lzmq -lmlm
@@ -18,6 +19,11 @@ LDFLAGS = -lc --entry main -L$(prefix)/lib
 LDFLAGS_R ?= -R$(prefix)/lib
 # Travis gcc does not like -R; hope real ld likes it
 LDFLAGS += $(LDFLAGS_R)
+
+ifdef DEBUG
+CFLAGS += $(CFLAGS_DEBUG)
+CXXFLAGS += $(CFLAGS_DEBUG)
+endif
 
 all: $(PROGS) $(JOE_PROGS)
 
