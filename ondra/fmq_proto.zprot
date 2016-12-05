@@ -1,7 +1,8 @@
+<?xml version="1.0"?>
 <class
-    name = "joe_proto"
+    name = "fmq_proto"
     signature = "0"
-    title = "joe example protocol"
+    title = "File ZeroMQ transfer protocol"
     script = "zproto_codec_c"
     package_dir = "."
     source_dir = "."
