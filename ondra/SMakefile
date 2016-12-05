@@ -36,10 +36,12 @@ Artifact("fmqcli", "bin");
 EndArtifact();
 
 Artifact("ctrl", "bin");
+  Profile("amplo");
+  Profile("ogetopt");
   Profile("zeromq");
   
   Src([
-    "ctrl.c",
+    "ctrl.cpp",
   ]);
 
   Deps("link", [
