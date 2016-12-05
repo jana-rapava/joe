@@ -1,24 +1,31 @@
 PROGS = smoketest ondra sc zactor-example miraserver \
+    zactor-fmq zactor_file \
     fmq fmqcli fmqsrv \
     echoclient echobara echosrv \
     vit-spinka-client1 vit-spinka-file-client vit-spinka-file-server vit-spinka-file-zactor
+
+JOE_OBJS = src/joe_proto.o
+JOE_PROGS = src/vit-spinka-joe-zactor src/fmq-joe
 
 CC = gcc
 CXX= g++
 LD = ld
 prefix ?= /usr/local
-CFLAGS = -I$(prefix)/include -std=c99 -D__EXTENSIONS__
-CXXFLAGS = -I$(prefix)/include -std=c++99 -D__EXTENSIONS__
+CFLAGS = -I$(prefix)/include -I./src -I./include -I./ -std=c99 -D__EXTENSIONS__ -D_GNU_SOURCE
+CXXFLAGS = -I$(prefix)/include -I./src -I./include -I./ -std=c++99 -D__EXTENSIONS__ -D_GNU_SOURCE
 LIBS = -lczmq -lzmq -lmlm
 LDFLAGS = -lc --entry main -L$(prefix)/lib
 LDFLAGS_R ?= -R$(prefix)/lib
 # Travis gcc does not like -R; hope real ld likes it
 LDFLAGS += $(LDFLAGS_R)
 
-all: $(PROGS)
+all: $(PROGS) $(JOE_PROGS)
 
 $(foreach PROG,$(PROGS),\
     $(eval ${PROG}: ${PROG}.o))
+
+$(foreach PROG,$(JOE_PROGS),\
+    $(eval ${PROG}: ${PROG}.o $$(JOE_OBJS)))
 
 %: %.o
 	$(LD) $(LDFLAGS) $(LIBS) -o $@ $^
@@ -38,7 +45,7 @@ memcheck-$(1): $(1)
 		./$$<
 endef
 
-$(foreach PROG,$(PROGS),\
+$(foreach PROG,$(PROGS) $(JOE_PROGS),\
     $(eval $(call memcheck_prog,${PROG})))
 
 memcheck: all $(MEMCHECK_PROGS)

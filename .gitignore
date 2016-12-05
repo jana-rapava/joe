@@ -17,6 +17,9 @@ zactor-example
 *\.git
 *\.o
 zactor-fmq
+zactor_file
 zmq-notes
 core\.*
 vgcore*
+src/vit-spinka-joe-zactor
+src/fmq-joe
