@@ -24,6 +24,17 @@
         filename            string      
         aux                 hash        
 
+    CHUNK - 
+        filename            string      
+        offset              number 8    
+        size                number 8    
+        checksum            number 8    
+        data                chunk       
+
+    CLOSE - 
+        filename            string      
+        size                number 8    
+
     READY - 
 
     ERROR - 
@@ -32,8 +43,10 @@
 
 
 #define JOE_PROTO_HELLO                     1
-#define JOE_PROTO_READY                     2
-#define JOE_PROTO_ERROR                     3
+#define JOE_PROTO_CHUNK                     2
+#define JOE_PROTO_CLOSE                     3
+#define JOE_PROTO_READY                     4
+#define JOE_PROTO_ERROR                     5
 
 #include <czmq.h>
 
@@ -100,6 +113,34 @@ zhash_t *
 //  Set the aux field, transferring ownership from caller
 void
     joe_proto_set_aux (joe_proto_t *self, zhash_t **hash_p);
+
+//  Get/set the offset field
+uint64_t
+    joe_proto_offset (joe_proto_t *self);
+void
+    joe_proto_set_offset (joe_proto_t *self, uint64_t offset);
+
+//  Get/set the size field
+uint64_t
+    joe_proto_size (joe_proto_t *self);
+void
+    joe_proto_set_size (joe_proto_t *self, uint64_t size);
+
+//  Get/set the checksum field
+uint64_t
+    joe_proto_checksum (joe_proto_t *self);
+void
+    joe_proto_set_checksum (joe_proto_t *self, uint64_t checksum);
+
+//  Get a copy of the data field
+zchunk_t *
+    joe_proto_data (joe_proto_t *self);
+//  Get the data field and transfer ownership to caller
+zchunk_t *
+    joe_proto_get_data (joe_proto_t *self);
+//  Set the data field, transferring ownership from caller
+void
+    joe_proto_set_data (joe_proto_t *self, zchunk_t **chunk_p);
 
 //  Get/set the reason field
 const char *

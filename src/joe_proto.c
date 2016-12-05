@@ -34,6 +34,10 @@ struct _joe_proto_t {
     char filename [256];                //  filename
     zhash_t *aux;                       //  aux
     size_t aux_bytes;                   //  Size of hash content
+    uint64_t offset;                    //  offset
+    uint64_t size;                      //  size
+    uint64_t checksum;                  //  checksum
+    zchunk_t *data;                     //  data
     char reason [256];                  //  reason
 };
 
@@ -211,6 +215,7 @@ joe_proto_destroy (joe_proto_t **self_p)
         //  Free class properties
         zframe_destroy (&self->routing_id);
         zhash_destroy (&self->aux);
+        zchunk_destroy (&self->data);
 
         //  Free object itself
         free (self);
@@ -280,6 +285,30 @@ joe_proto_recv (joe_proto_t *self, zsock_t *input)
             }
             break;
 
+        case JOE_PROTO_CHUNK:
+            GET_STRING (self->filename);
+            GET_NUMBER8 (self->offset);
+            GET_NUMBER8 (self->size);
+            GET_NUMBER8 (self->checksum);
+            {
+                size_t chunk_size;
+                GET_NUMBER4 (chunk_size);
+                if (self->needle + chunk_size > (self->ceiling)) {
+                    zsys_warning ("joe_proto: data is missing data");
+                    rc = -2;    //  Malformed
+                    goto malformed;
+                }
+                zchunk_destroy (&self->data);
+                self->data = zchunk_new (self->needle, chunk_size);
+                self->needle += chunk_size;
+            }
+            break;
+
+        case JOE_PROTO_CLOSE:
+            GET_STRING (self->filename);
+            GET_NUMBER8 (self->size);
+            break;
+
         case JOE_PROTO_READY:
             break;
 
@@ -332,6 +361,19 @@ joe_proto_send (joe_proto_t *self, zsock_t *output)
             }
             frame_size += self->aux_bytes;
             break;
+        case JOE_PROTO_CHUNK:
+            frame_size += 1 + strlen (self->filename);
+            frame_size += 8;            //  offset
+            frame_size += 8;            //  size
+            frame_size += 8;            //  checksum
+            frame_size += 4;            //  Size is 4 octets
+            if (self->data)
+                frame_size += zchunk_size (self->data);
+            break;
+        case JOE_PROTO_CLOSE:
+            frame_size += 1 + strlen (self->filename);
+            frame_size += 8;            //  size
+            break;
         case JOE_PROTO_ERROR:
             frame_size += 1 + strlen (self->reason);
             break;
@@ -358,6 +400,27 @@ joe_proto_send (joe_proto_t *self, zsock_t *output)
             }
             else
                 PUT_NUMBER4 (0);    //  Empty hash
+            break;
+
+        case JOE_PROTO_CHUNK:
+            PUT_STRING (self->filename);
+            PUT_NUMBER8 (self->offset);
+            PUT_NUMBER8 (self->size);
+            PUT_NUMBER8 (self->checksum);
+            if (self->data) {
+                PUT_NUMBER4 (zchunk_size (self->data));
+                memcpy (self->needle,
+                        zchunk_data (self->data),
+                        zchunk_size (self->data));
+                self->needle += zchunk_size (self->data);
+            }
+            else
+                PUT_NUMBER4 (0);    //  Empty chunk
+            break;
+
+        case JOE_PROTO_CLOSE:
+            PUT_STRING (self->filename);
+            PUT_NUMBER8 (self->size);
             break;
 
         case JOE_PROTO_ERROR:
@@ -393,6 +456,21 @@ joe_proto_print (joe_proto_t *self)
             }
             else
                 zsys_debug ("(NULL)");
+            break;
+
+        case JOE_PROTO_CHUNK:
+            zsys_debug ("JOE_PROTO_CHUNK:");
+            zsys_debug ("    filename='%s'", self->filename);
+            zsys_debug ("    offset=%ld", (long) self->offset);
+            zsys_debug ("    size=%ld", (long) self->size);
+            zsys_debug ("    checksum=%ld", (long) self->checksum);
+            zsys_debug ("    data=[ ... ]");
+            break;
+
+        case JOE_PROTO_CLOSE:
+            zsys_debug ("JOE_PROTO_CLOSE:");
+            zsys_debug ("    filename='%s'", self->filename);
+            zsys_debug ("    size=%ld", (long) self->size);
             break;
 
         case JOE_PROTO_READY:
@@ -453,6 +531,12 @@ joe_proto_command (joe_proto_t *self)
     switch (self->id) {
         case JOE_PROTO_HELLO:
             return ("HELLO");
+            break;
+        case JOE_PROTO_CHUNK:
+            return ("CHUNK");
+            break;
+        case JOE_PROTO_CLOSE:
+            return ("CLOSE");
             break;
         case JOE_PROTO_READY:
             return ("READY");
@@ -516,6 +600,93 @@ joe_proto_set_aux (joe_proto_t *self, zhash_t **aux_p)
     zhash_destroy (&self->aux);
     self->aux = *aux_p;
     *aux_p = NULL;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get/set the offset field
+
+uint64_t
+joe_proto_offset (joe_proto_t *self)
+{
+    assert (self);
+    return self->offset;
+}
+
+void
+joe_proto_set_offset (joe_proto_t *self, uint64_t offset)
+{
+    assert (self);
+    self->offset = offset;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get/set the size field
+
+uint64_t
+joe_proto_size (joe_proto_t *self)
+{
+    assert (self);
+    return self->size;
+}
+
+void
+joe_proto_set_size (joe_proto_t *self, uint64_t size)
+{
+    assert (self);
+    self->size = size;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get/set the checksum field
+
+uint64_t
+joe_proto_checksum (joe_proto_t *self)
+{
+    assert (self);
+    return self->checksum;
+}
+
+void
+joe_proto_set_checksum (joe_proto_t *self, uint64_t checksum)
+{
+    assert (self);
+    self->checksum = checksum;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Get the data field without transferring ownership
+
+zchunk_t *
+joe_proto_data (joe_proto_t *self)
+{
+    assert (self);
+    return self->data;
+}
+
+//  Get the data field and transfer ownership to caller
+
+zchunk_t *
+joe_proto_get_data (joe_proto_t *self)
+{
+    zchunk_t *data = self->data;
+    self->data = NULL;
+    return data;
+}
+
+//  Set the data field, transferring ownership from caller
+
+void
+joe_proto_set_data (joe_proto_t *self, zchunk_t **chunk_p)
+{
+    assert (self);
+    assert (chunk_p);
+    zchunk_destroy (&self->data);
+    self->data = *chunk_p;
+    *chunk_p = NULL;
 }
 
 
@@ -595,6 +766,43 @@ joe_proto_test (bool verbose)
         zhash_destroy (&aux);
         if (instance == 1)
             zhash_destroy (&hello_aux);
+    }
+    joe_proto_set_id (self, JOE_PROTO_CHUNK);
+
+    joe_proto_set_filename (self, "Life is short but Now lasts for ever");
+    joe_proto_set_offset (self, 123);
+    joe_proto_set_size (self, 123);
+    joe_proto_set_checksum (self, 123);
+    zchunk_t *chunk_data = zchunk_new ("Captcha Diem", 12);
+    joe_proto_set_data (self, &chunk_data);
+    //  Send twice
+    joe_proto_send (self, output);
+    joe_proto_send (self, output);
+
+    for (instance = 0; instance < 2; instance++) {
+        joe_proto_recv (self, input);
+        assert (joe_proto_routing_id (self));
+        assert (streq (joe_proto_filename (self), "Life is short but Now lasts for ever"));
+        assert (joe_proto_offset (self) == 123);
+        assert (joe_proto_size (self) == 123);
+        assert (joe_proto_checksum (self) == 123);
+        assert (memcmp (zchunk_data (joe_proto_data (self)), "Captcha Diem", 12) == 0);
+        if (instance == 1)
+            zchunk_destroy (&chunk_data);
+    }
+    joe_proto_set_id (self, JOE_PROTO_CLOSE);
+
+    joe_proto_set_filename (self, "Life is short but Now lasts for ever");
+    joe_proto_set_size (self, 123);
+    //  Send twice
+    joe_proto_send (self, output);
+    joe_proto_send (self, output);
+
+    for (instance = 0; instance < 2; instance++) {
+        joe_proto_recv (self, input);
+        assert (joe_proto_routing_id (self));
+        assert (streq (joe_proto_filename (self), "Life is short but Now lasts for ever"));
+        assert (joe_proto_size (self) == 123);
     }
     joe_proto_set_id (self, JOE_PROTO_READY);
 

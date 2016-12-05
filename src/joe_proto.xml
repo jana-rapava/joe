@@ -12,6 +12,19 @@
         <field name = "aux" type = "hash" />
     </message>
 
+    <message name = "CHUNK" type = "string">
+        <field name = "filename" type = "string" />
+        <field name = "offset" type = "number" size="8"/>
+        <field name = "size" type = "number" size="8"/>
+        <field name = "checksum" type = "number"size="8" />
+        <field name = "data" type = "chunk" />
+    </message>
+
+    <message name = "CLOSE" type = "string">
+        <field name = "filename" type = "string" />
+        <field name = "size" type = "number" size="8"/>
+    </message>
+
     <message name = "READY" />
     <message name = "ERROR" >
         <field name = "reason" type = "string" />
