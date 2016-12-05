@@ -1,0 +1,12 @@
+The following ABNF grammar defines the server control protocol:
+
+    ocontrol        = *( QUIT )
+
+    ;  No description                                                        
+
+    QUIT            = signature %d1
+    signature       = %xAA %xA0             ; two octets
+
+    ; Strings are always length + text contents
+
+    ; Numbers are unsigned integers in network byte order

@@ -1,0 +1,11 @@
+<class
+    name = "ocontrol"
+    signature = "0"
+    title = "server control protocol"
+    script = "zproto_codec_c"
+    package_dir = "."
+    source_dir = "."
+>
+
+    <message name = "QUIT" type = "string"/>
+</class>

@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "joe_proto.h"
+#include "ocontrol.h"
 
 static void serverActor(
         zsock_t* pipe_,
@@ -65,11 +66,21 @@ int main () {
     zsys_init();
 
     zactor_t *server_ = zactor_new(serverActor, "server1");
-    zclock_sleep(10000);
+
+    zsock_t* ctrl_ = zsock_new_router("tcp://0.0.0.0:5000");
+    while(!zsys_interrupted) {
+        ocontrol_t* ctrlmsg_ = ocontrol_new();
+        ocontrol_recv(ctrlmsg_, ctrl_);
+        if(ocontrol_id(ctrlmsg_) == OCONTROL_QUIT) {
+            break;
+        }
+    }
+
     zstr_sendx(server_, "QUIT", NULL);
     zsock_wait(server_);
     zsys_debug("Process ended");
     zactor_destroy(&server_);
+    zsock_destroy(&ctrl_);
 
     return 0;
 }
