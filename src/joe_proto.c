@@ -760,7 +760,7 @@ joe_proto_test (bool verbose)
         assert (joe_proto_routing_id (self));
         assert (streq (joe_proto_filename (self), "Life is short but Now lasts for ever"));
         zhash_t *aux = joe_proto_get_aux (self);
-        assert (zhash_size (aux) == 2);
+        assert (zhash_size (aux) == 1);
         assert (streq ((char *) zhash_first (aux), "Brutus"));
         assert (streq ((char *) zhash_cursor (aux), "Name"));
         zhash_destroy (&aux);
