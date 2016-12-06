@@ -1,0 +1,26 @@
+joec(1)
+=======
+
+NAME
+----
+joec - Joe client
+
+SYNOPSIS
+--------
+----
+Please add @interface section in ../src/joec.c.
+----
+
+DESCRIPTION
+-----------
+
+joec - Joe client
+
+Please add @discuss section in ../src/joec.c.
+
+EXAMPLE
+-------
+.From joec_test method
+----
+Please add @selftest section in ../src/joec.c.
+----

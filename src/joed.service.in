@@ -1,0 +1,11 @@
+[Unit]
+Description=joed service
+After=network.target
+
+[Service]
+Type=simple
+Environment="prefix=@prefix@"
+ExecStart=@prefix@/bin/joed @sysconfdir@/@PACKAGE@/joed.cfg
+
+[Install]
+WantedBy=multi-user.target

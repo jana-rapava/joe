@@ -1,0 +1,26 @@
+joed(1)
+=======
+
+NAME
+----
+joed - Joe daemon
+
+SYNOPSIS
+--------
+----
+Please add @interface section in ../src/joed.c.
+----
+
+DESCRIPTION
+-----------
+
+joed - Joe daemon
+
+Please add @discuss section in ../src/joed.c.
+
+EXAMPLE
+-------
+.From joed_test method
+----
+Please add @selftest section in ../src/joed.c.
+----
