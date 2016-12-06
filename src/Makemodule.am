@@ -74,6 +74,14 @@ src_joe_selftest_LDADD = ${program_libs}
 src_joe_selftest_SOURCES = src/joe_selftest.c
 endif #ENABLE_JOE_SELFTEST
 
+if ENABLE_ZYRE_JIM
+bin_PROGRAMS += src/zyre-jim
+src_zyre_jim_CPPFLAGS = ${AM_CPPFLAGS}
+src_zyre_jim_LDADD = ${program_libs}
+src_zyre_jim_LDFLAGS = -lzyre -L/usr/local/lib
+src_zyre_jim_SOURCES = src/zyre-jim.c
+endif #ENABLE_ZYRE_JIM
+
 # Install api files into /usr/local/share/zproject
 apidir = @datadir@/zproject/joe
 dist_api_DATA = \
@@ -81,6 +89,7 @@ dist_api_DATA = \
 
 # define custom target for all products of /src
 src:
+	src/zyre-jim \
 	src/joed \
 	src/joec \
 	src/joe_selftest \
