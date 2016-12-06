@@ -5,7 +5,7 @@ int main () {
 
     zsock_t *server = zsock_new_router ("tcp://0.0.0.0:5555");
 
-    while(1) {
+    while (!zsys_interrupted) {
         // server - receive the REQUEST
         zmsg_t *msg2 = zmsg_recv (server);
         zframe_t *routing_id = zmsg_pop (msg2);
