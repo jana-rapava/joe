@@ -117,13 +117,13 @@ void
 joes_server (zsock_t *pipe, void *args)
 {
     //    zsock_t *svr = zsock_new_router ("inproc://test");
-    zsock_t *svr = zsock_new_router ("tcp://192.168.1.144:7777");
+    zsock_t *svr = NULL;
     
     // joe's message
     joe_proto_t *joes = joe_proto_new ();
     
     char *name = strdup ((char*) args);
-    zpoller_t *poller = zpoller_new (pipe, svr, NULL);
+    zpoller_t *poller = zpoller_new (pipe, NULL);
 
     // to signal to runtime it should spawn the thread
     zsock_signal (pipe, 0);
@@ -147,7 +147,22 @@ joes_server (zsock_t *pipe, void *args)
                 zstr_free (&command);
                 zmsg_destroy (&msg);
                 break;
-            }                       
+            }
+            else
+            if (streq (command, "BIND")) {
+                if (svr) {
+                    zsys_warning ("Already connected, nothing to do");
+                }
+                else
+                {
+                    char *endpoint = zmsg_popstr (msg);
+                    zsys_debug ("endpoint=%s", endpoint);
+                    svr = zsock_new_router (endpoint);
+                    zpoller_add (poller, svr);
+                    zstr_free (&endpoint);
+                }
+            }
+            zmsg_destroy (&msg);
         }
 
         if (which == svr)
