@@ -28,9 +28,8 @@ typedef struct {
 
 static test_item_t
 all_tests [] = {
-#ifdef JOE_BUILD_DRAFT_API
+    { "joe_server", joe_server_test },
     { "joe_proto", joe_proto_test },
-#endif // JOE_BUILD_DRAFT_API
     {0, 0}          //  Sentinel
 };
 
@@ -88,13 +87,14 @@ main (int argc, char **argv)
         else
         if (streq (argv [argn], "--number")
         ||  streq (argv [argn], "-n")) {
-            puts ("1");
+            puts ("2");
             return 0;
         }
         else
         if (streq (argv [argn], "--list")
         ||  streq (argv [argn], "-l")) {
             puts ("Available tests:");
+            puts ("    joe_server");
             puts ("    joe_proto");
             return 0;
         }

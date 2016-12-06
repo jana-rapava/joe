@@ -1,0 +1,85 @@
+'\" t
+.\"     Title: joe_server
+.\"    Author: [see the "AUTHORS" section]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 12/06/2016
+.\"    Manual: Joe Manual
+.\"    Source: Joe 0.1.0
+.\"  Language: English
+.\"
+.TH "JOE_SERVER" "3" "12/06/2016" "Joe 0\&.1\&.0" "Joe Manual"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+joe_server \- class description
+.SH "SYNOPSIS"
+.sp
+.nf
+//  Create a new joe_server
+JOE_EXPORT joe_server_t *
+    joe_server_new (void);
+
+//  Destroy the joe_server
+JOE_EXPORT void
+    joe_server_destroy (joe_server_t **self_p);
+
+//  Self test of this class
+JOE_EXPORT void
+    joe_server_test (bool verbose);
+.fi
+.SH "DESCRIPTION"
+.sp
+joe_server \-
+.sp
+Please add @discuss section in \&.\&./src/joe_server\&.c\&.
+.SH "EXAMPLE"
+.PP
+\fBFrom joe_server_test method\fR. 
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+//  Simple create/destroy test
+joe_server_t *self = joe_server_new ();
+assert (self);
+joe_server_destroy (&self);
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+.SH "AUTHORS"
+.sp
+The joe manual was written by the authors in the AUTHORS file\&.
+.SH "RESOURCES"
+.sp
+Main web site: \m[blue]\fB\%\fR\m[]
+.sp
+Report bugs to the email <\m[blue]\fBjoe@eaton\&.com\fR\m[]\&\s-2\u[1]\d\s+2>
+.SH "COPYRIGHT"
+.sp
+Copyright (c) the Contributors as noted in the AUTHORS file\&. This file is part of CZMQ, the high\-level C binding for 0MQ: http://czmq\&.zeromq\&.org\&. This Source Code Form is subject to the terms of the Mozilla Public License, v\&. 2\&.0\&. If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla\&.org/MPL/2\&.0/\&. LICENSE included with the joe distribution\&.
+.SH "NOTES"
+.IP " 1." 4
+joe@eaton.com
+.RS 4
+\%mailto:joe@eaton.com
+.RE

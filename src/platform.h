@@ -197,6 +197,9 @@
 /* Version number of package */
 #define VERSION "0.1.0"
 
+/* systemd units are going to be installed */
+/* #undef WITH_SYSTEMD_UNITS */
+
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
 #if defined AC_APPLE_UNIVERSAL_BUILD

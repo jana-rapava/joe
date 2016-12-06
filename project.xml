@@ -11,7 +11,16 @@
     <version major = "0" minor = "1" patch = "0" />
     <use project = "czmq" />
 
-    <class name = "joe_proto" />
+    <class name = "joe_server" state = "stable" />
+    <class name = "joe_proto" state = "stable" />
     <model name = "joe_proto" codec="zproto_codec_c_v1" />
+
+    <main name = "joed" service = "1">
+        Joe daemon
+    </main>
+
+    <main name = "joec">
+        Joe client
+    </main>
 
 </project>
