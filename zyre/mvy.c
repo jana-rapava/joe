@@ -32,14 +32,15 @@ int main () {
         }
 
         if (which == zyre_socket (zyre)) {
-            zmsg_t *msg = zyre_recv (zyre);
-            zmsg_print (msg);
-            zmsg_destroy (&msg);
+            zyre_event_t *event = zyre_event_new (zyre);
+            zyre_event_print (event);
+            zyre_event_destroy (&event);
         }
 
     }
 
     zpoller_destroy (&poller);
+    zyre_stop (zyre);
     zyre_destroy (&zyre);
 
 }
