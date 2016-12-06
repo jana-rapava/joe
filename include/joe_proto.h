@@ -16,7 +16,7 @@ Set the data field, transferring ownership from caller
 #ifndef JOE_PROTO_H_INCLUDED
 #define JOE_PROTO_H_INCLUDED
 
-#include "joe.h"
+#include <joe.h>
 
 #ifdef __cplusplus
 extern "C" {

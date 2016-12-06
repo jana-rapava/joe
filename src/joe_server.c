@@ -52,9 +52,11 @@ void joe_server_actor(
             if(strcmp(command_, "QUIT") == 0) {
                 zsys_debug("%s: quit", name_);
                 zstr_free(&command_);
+                zmsg_destroy(&msg_);
                 break;
             }
             zstr_free(&command_);
+            zmsg_destroy(&msg_);
         }
         else if(which_ == server_) {
             joe_proto_t* message_ = joe_proto_new();
@@ -105,7 +107,7 @@ joe_server_test (bool verbose)
     joe_proto_send(message_, client_);
     joe_proto_destroy(&message_);
 
-    zclock_sleep(1000);
+//    zclock_sleep(1000);
 
     joe_proto_t* response_ = joe_proto_new();
     joe_proto_recv(response_, client_);

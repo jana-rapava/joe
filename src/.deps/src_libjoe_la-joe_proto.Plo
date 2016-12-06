@@ -1,9 +1,8 @@
 src/src_libjoe_la-joe_proto.lo: src/joe_proto.c \
- /usr/include/stdc-predef.h src/../include/joe_proto.h \
- src/../include/joe.h src/../include/joe_library.h \
- /usr/local/include/czmq.h /usr/local/include/czmq_library.h \
- /usr/local/include/czmq_prelude.h /usr/local/include/zmq.h \
- /usr/include/errno.h /usr/include/features.h \
+ /usr/include/stdc-predef.h src/../include/joe_proto.h include/joe.h \
+ include/joe_library.h /usr/local/include/czmq.h \
+ /usr/local/include/czmq_library.h /usr/local/include/czmq_prelude.h \
+ /usr/local/include/zmq.h /usr/include/errno.h /usr/include/features.h \
  /usr/include/i386-linux-gnu/sys/cdefs.h \
  /usr/include/i386-linux-gnu/bits/wordsize.h \
  /usr/include/i386-linux-gnu/gnu/stubs.h \
@@ -128,16 +127,15 @@ src/src_libjoe_la-joe_proto.lo: src/joe_proto.c \
  /usr/local/include/zmonitor.h /usr/local/include/zproxy.h \
  /usr/local/include/zrex.h /usr/local/include/zsys.h \
  /usr/local/include/zproc.h /usr/local/include/ztimerset.h \
- /usr/local/include/ztrie.h src/../include/joe_server.h include/joe.h \
- src/../include/joe_proto.h
+ /usr/local/include/ztrie.h include/joe_server.h include/joe_proto.h
 
 /usr/include/stdc-predef.h:
 
 src/../include/joe_proto.h:
 
-src/../include/joe.h:
+include/joe.h:
 
-src/../include/joe_library.h:
+include/joe_library.h:
 
 /usr/local/include/czmq.h:
 
@@ -509,8 +507,6 @@ src/../include/joe_library.h:
 
 /usr/local/include/ztrie.h:
 
-src/../include/joe_server.h:
+include/joe_server.h:
 
-include/joe.h:
-
-src/../include/joe_proto.h:
+include/joe_proto.h:

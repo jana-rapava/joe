@@ -19,7 +19,7 @@
 */
 
 #include <czmq.h>
-#include "joe_classes.h"
+#include <joe.h>
 
 int main (int argc, char *argv [])
 {
