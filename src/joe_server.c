@@ -20,41 +20,96 @@
 
 #include "joe_classes.h"
 
-//  Structure of our class
+#include <czmq.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-struct _joe_server_t {
-    int filler;     //  Declare class properties here
+#include "joe_proto.h"
 
-};
+void joe_server_actor(
+        zsock_t* pipe_,
+        void* udata_) {
+    JoeServerActorParams* params_ = (JoeServerActorParams*) udata_;
+    char* name_ = strdup(params_ -> actor_name);
+    char* url_ = strdup(params_ -> bind_url);
 
+    zsock_t* server_ = zsock_new_router(url_);
+    zpoller_t* poller_ = zpoller_new(pipe_, server_, NULL);
 
-//  --------------------------------------------------------------------------
-//  Create a new joe_server
+    // to signal to runtime it should spawn the thread
+    zsock_signal(pipe_, 0);
+    zsys_debug("%s: started", name_);
 
-joe_server_t *
-joe_server_new (void)
-{
-    joe_server_t *self = (joe_server_t *) zmalloc (sizeof (joe_server_t));
-    assert (self);
-    //  Initialize class properties here
-    return self;
-}
+    while(!zsys_interrupted) {
+        /* -- wait for an event */
+        void* which_ = zpoller_wait(poller_, -1);
+        if(!which_)
+            break;
 
+        if(which_ == pipe_) {
+            zmsg_t* msg_ = zmsg_recv(pipe_);
+            zmsg_print(msg_);
+            char* command_ = zmsg_popstr(msg_);
+            if(strcmp(command_, "QUIT") == 0) {
+                zsys_debug("%s: quit", name_);
+                zstr_free(&command_);
+                zmsg_destroy(&msg_);
+                break;
+            }
+            zstr_free(&command_);
+            zmsg_destroy(&msg_);
+        }
+        else if(which_ == server_) {
+            joe_proto_t* message_ = joe_proto_new();
+            joe_proto_recv(message_, server_);
+            joe_proto_print(message_);
 
-//  --------------------------------------------------------------------------
-//  Destroy the joe_server
+            joe_proto_t* response_ = joe_proto_new();
+            joe_proto_set_routing_id(response_, joe_proto_routing_id(message_));
+            if(joe_proto_id(message_) == JOE_PROTO_HELLO) {
+                joe_proto_set_id(response_, JOE_PROTO_READY);
+            }
+            else if(joe_proto_id(message_) == JOE_PROTO_CHUNK) {
+                zsys_info("  filename: %s", joe_proto_filename(message_));
+                zsys_info("  offset: %lld", joe_proto_offset(message_));
+                zsys_info("  size: %lld", joe_proto_size(message_));
+                zsys_info("  checksum: %llx", joe_proto_checksum(message_));
+                zchunk_t* data_ = joe_proto_data(message_);
 
-void
-joe_server_destroy (joe_server_t **self_p)
-{
-    assert (self_p);
-    if (*self_p) {
-        joe_server_t *self = *self_p;
-        //  Free class properties here
-        //  Free object itself
-        free (self);
-        *self_p = NULL;
+                FILE* file_ = fopen(joe_proto_filename(message_), "wb");
+                if(file_ != NULL) {
+                    if(fseek(file_, joe_proto_offset(message_), SEEK_SET) == joe_proto_offset(message_)) {
+                        zchunk_write(data_, file_);
+                        fclose(file_);
+                        joe_proto_set_id(response_, JOE_PROTO_READY);
+                    }
+                    else {
+                        joe_proto_set_id(response_, JOE_PROTO_ERROR);
+                        joe_proto_set_reason(response_, "Cannot write into the file.");
+                    }
+                }
+                else {
+                    joe_proto_set_id(response_, JOE_PROTO_ERROR);
+                    joe_proto_set_reason(response_, "Cannot open the file.");
+                }
+//                zchunk_destroy(&data_);
+            }
+            else {
+                joe_proto_set_id(response_, JOE_PROTO_ERROR);
+                joe_proto_set_reason(response_, "Invalid protocol command");
+            }
+            joe_proto_send(response_, server_);
+
+            joe_proto_destroy(&message_);
+            joe_proto_destroy(&response_);
+        }
     }
+
+    zpoller_destroy(&poller_);
+    zsock_destroy(&server_);
+    free(name_);
+    free(url_);
+    zsock_signal(pipe_, 0);
 }
 
 
@@ -252,35 +307,41 @@ joe_server_test (bool verbose)
        
     printf (" * joe_server: \n");
 
-    //  @selftest
-    //  Simple create/destroy test
-    static const char *endpoint = "inproc://joe_server_test";
+    JoeServerActorParams params_ = {"server1", JOE_SERVER_TEST_SERVICE_URL};
+    zactor_t *server_ = zactor_new(joe_server_actor, &params_);
+    assert(server_ != NULL);
 
-    zactor_t *server = zactor_new (joes_server, "joes_server");
-    zstr_sendx (server, "BIND", endpoint, NULL);
+    zsock_t *client_ = zsock_new_dealer(JOE_SERVER_TEST_SERVICE_URL);
 
-    zsock_t *client = zsock_new_dealer (endpoint);
-    assert (client);
+    /* -- test the HELLO message */
+    joe_proto_t* message_ = joe_proto_new();
+    joe_proto_set_id(message_, JOE_PROTO_HELLO);
+    joe_proto_set_filename(message_, "/etc/passwd");
+    joe_proto_send(message_, client_);
+    joe_proto_destroy(&message_);
+    joe_proto_t* response_ = joe_proto_new();
+    joe_proto_recv(response_, client_);
+    joe_proto_print(response_);
+    assert(joe_proto_id(response_) == JOE_PROTO_READY);
+    joe_proto_destroy(&response_);
 
-    joe_proto_t *msg = joe_proto_new ();
-    joe_proto_set_id (msg, JOE_PROTO_HELLO);
-    joe_proto_set_filename (msg, "name");
-    joe_proto_send (msg, client);
-    
-    int r;
-    r = joe_proto_recv (msg, client);
-    assert (r == 0);
-    joe_proto_print (msg);
+    /* -- invalid command */
+    message_ = joe_proto_new();
+    joe_proto_set_id(message_, JOE_PROTO_READY);
+    joe_proto_send(message_, client_);
+    joe_proto_destroy(&message_);
+    response_ = joe_proto_new();
+    joe_proto_recv(response_, client_);
+    joe_proto_print(response_);
+    assert(joe_proto_id(response_) == JOE_PROTO_ERROR);
+    joe_proto_destroy(&response_);
 
-    joe_proto_set_id (msg, JOE_PROTO_HELLO);
-    joe_proto_send (msg, client);
-    r = joe_proto_recv (msg, client);
-    assert (r == 0);
-    joe_proto_print (msg);
+    zsock_destroy(&client_);
 
-    joe_proto_destroy (&msg);
-    zsock_destroy (&client);
-    zactor_destroy (&server);
-    //  @end
+    /* -- finish the server */
+    zstr_sendx(server_, "QUIT", NULL);
+    zsock_wait(server_);
+    zactor_destroy(&server_);
+
     printf ("OK\n");
 }

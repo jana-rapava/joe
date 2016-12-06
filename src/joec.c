@@ -1,6 +1,5 @@
 /*  =========================================================================
     joec - Joe client
-
     Copyright (c) the Contributors as noted in the AUTHORS file.       
     This file is part of CZMQ, the high-level C binding for 0MQ:       
     http://czmq.zeromq.org.                                            
@@ -134,10 +133,10 @@ int main (int argc, char *argv [])
     //  Insert main code here
     if (verbose)
         zsys_info ("joec - Joe client");
-    
-    zactor_t *client = zactor_new (s_actor_client, "joec"); 
+
+    zactor_t *client = zactor_new (s_actor_client, "joec");
     zclock_sleep (5000);
     zactor_destroy(&client);
-    
+
     return 0;
 }

@@ -18,18 +18,24 @@
 extern "C" {
 #endif
 
+#include <joe.h>
+
+typedef struct {
+    const char* actor_name;
+    const char* bind_url;
+} JoeServerActorParams;
+
+/**
+ * @brief Actor of the server
+ */
+JOE_EXPORT void joe_server_actor(
+        zsock_t* pipe_,
+        void* udata_);
+
 //  @interface
-//  Create a new joe_server
-JOE_EXPORT joe_server_t *
-    joe_server_new (void);
-
-//  Destroy the joe_server
-JOE_EXPORT void
-    joe_server_destroy (joe_server_t **self_p);
-
-//  Self test of this class
-JOE_EXPORT void
-    joe_server_test (bool verbose);
+JOE_EXPORT
+void
+joe_server_test (bool verbose);
 
 //  @end
 

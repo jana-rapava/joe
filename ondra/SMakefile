@@ -1,0 +1,75 @@
+Artifact("libfmq.lib", "lib");
+  Src([
+    "fmq_proto.zprot",
+  ]);
+EndArtifact();
+  
+Artifact("libocontrol.lib", "lib");
+  Src([
+    "ocontrol.zprot",
+  ]);
+EndArtifact();
+
+Artifact("libfmqsrv.lib", "lib");
+  Src([
+    "fmqsrv.c",
+    "fmqsrv.h",
+  ]);
+
+  Deps("link", [
+  ]);
+EndArtifact();
+  
+Artifact("fmqsrv", "bin");
+  Profile("zeromq");
+  
+  Src([
+    "fmqsrvmain.c",
+  ]);
+
+  Deps("link", [
+    "libfmq.lib",
+    "libfmqsrv.lib",
+    "libocontrol.lib",
+  ]);
+EndArtifact();
+
+Artifact("fmqcli", "bin");
+  Profile("zeromq");
+  
+  Src([
+    "fmqcli.c",
+  ]);
+
+  Deps("link", [
+    "libfmq.lib",
+  ]);
+EndArtifact();
+
+Artifact("ctrl", "bin");
+  Profile("amplo");
+  Profile("ogetopt");
+  Profile("zeromq");
+  
+  Src([
+    "ctrl.cpp",
+  ]);
+
+  Deps("link", [
+    "libocontrol.lib",
+  ]);
+EndArtifact();
+
+Artifact("gcs", "bin");
+  Profile("amplo");
+  Profile("ogetopt");
+  Profile("zeromq");
+  
+  Src([
+    "gcs.cpp",
+  ]);
+
+  Deps("link", [
+    
+  ]);
+EndArtifact();
