@@ -238,6 +238,8 @@ case "${host_os}" in
     *solaris*)
         # Define on Solaris to enable all library features
         CPPFLAGS="-D_PTHREADS $CPPFLAGS"
+        # Allow definitions of common OS-provided functions that are not in old standards
+        CPPFLAGS="-D__EXTENSIONS__ $CPPFLAGS"
         AC_DEFINE(JOE_HAVE_SOLARIS, 1, [Have Solaris OS])
         CFLAGS="${CFLAGS} -lsocket -lssp"
         ;;
@@ -365,6 +367,16 @@ AC_ARG_ENABLE([joec],
 
 AM_CONDITIONAL([ENABLE_JOEC], [test x$enable_joec != xno])
 AM_COND_IF([ENABLE_JOEC], [AC_MSG_NOTICE([ENABLE_JOEC defined])])
+
+# Check for zyre-jim intent
+AC_ARG_ENABLE([zyre-jim],
+    AS_HELP_STRING([--enable-zyre-jim],
+        [Compile and install 'zyre-jim' [default=yes]]),
+    [enable_zyre_jim=$enableval],
+    [enable_zyre_jim=yes])
+
+AM_CONDITIONAL([ENABLE_ZYRE_JIM], [test x$enable_zyre_jim != xno])
+AM_COND_IF([ENABLE_ZYRE_JIM], [AC_MSG_NOTICE([ENABLE_ZYRE_JIM defined])])
 
 # Check for joe_selftest intent
 AC_ARG_ENABLE([joe_selftest],

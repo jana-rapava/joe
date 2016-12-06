@@ -1,6 +1,5 @@
 /*  =========================================================================
     joec - Joe client
-
     Copyright (c) the Contributors as noted in the AUTHORS file.       
     This file is part of CZMQ, the high-level C binding for 0MQ:       
     http://czmq.zeromq.org.                                            
@@ -18,51 +17,101 @@
 @end
 */
 
-#include <czmq.h>
-#include <stdio.h>
+#include "joe_classes.h"
 
-#include "joe.h"
+static void s_actor_client(zsock_t *pipe, void *args) {
+    char *name = strdup ((char*) args);
+    zsock_t *client = zsock_new_dealer ("tcp://192.168.1.153:5000");
+    zpoller_t *poller = zpoller_new (pipe, client, NULL);
 
-#define CHUNK_SIZE 1024
+    // to signal to runtime it should spawn the thread
+    zsock_signal (pipe, 0);
+    zsys_debug ("%s:\tstarted", name);
+    char *filename_full = "/etc/passwd";
+    char *filename_target = "passwd";
+    FILE *file = fopen (filename_full, "r");
+    assert (file);
+    unsigned long file_size_so_far = 0;
+    unsigned int checksum = 0;
+    int finished = 0;
 
-static
-void sendFile(
-        const char* filename_,
-        zsock_t* client_) {
-    FILE* file_ = fopen(filename_, "rb");
-    zchunk_t* chunk_ = zchunk_read(file_, CHUNK_SIZE);
-    uint64_t offset_ = 0;
-    while(chunk_ != NULL) {
-        uint64_t size_ = zchunk_size(chunk_);
-        joe_proto_t* message_ = joe_proto_new();
-        joe_proto_set_id(message_, JOE_PROTO_CHUNK);
-        joe_proto_set_size(message_, size_);
-        joe_proto_set_offset(message_, offset_);
-        joe_proto_set_filename(message_, filename_);
-        joe_proto_set_checksum(message_, 0);
-        joe_proto_set_data(message_, &chunk_);
-        joe_proto_send(message_, client_);
-        joe_proto_destroy(&message_);
+    joe_proto_t *msg = joe_proto_new ();
+    joe_proto_set_id (msg, JOE_PROTO_HELLO);
+    joe_proto_set_filename (msg, filename_target);
+ 
+    joe_proto_print (msg);
+    joe_proto_send (msg, client);
+    //TODO: destroy?
 
-        joe_proto_t* response_ = joe_proto_new();
-        joe_proto_recv(response_, client_);
-        if(joe_proto_id(response_) != JOE_PROTO_READY) {
-            joe_proto_destroy(&response_);
+    while (!zsys_interrupted) {
+
+        void *which = zpoller_wait (poller, -1);
+
+        if (!which)
             break;
-        }
-        joe_proto_destroy(&response_);
 
-        offset_ += size_;
-        chunk_ = zchunk_read(file_, CHUNK_SIZE);
+        if (which == pipe) {
+            zmsg_t *msg = zmsg_recv (pipe);
+            char *command = zmsg_popstr (msg);
+            zsys_info ("Got API command=%s", command);
+            if (streq (command, "$TERM")) {
+                zstr_free (&command);
+                zmsg_destroy (&msg);
+                break;
+            }
+            zstr_free (&command);
+            zmsg_destroy (&msg);
+        }
+
+        if (which == client) {
+            joe_proto_recv (msg, client);
+            //zsys_info ("Received this message:");
+            joe_proto_print (msg);
+            int result = joe_proto_id (msg);
+            if (result != JOE_PROTO_READY) {
+              zsys_info("Error in transfer, client aborting.");
+              joe_proto_destroy (&msg);
+              break;
+            }
+            if (finished) {
+              zsys_info("Happy end.");
+              joe_proto_destroy (&msg);
+              break;
+            }
+
+            joe_proto_t *msg = joe_proto_new();
+   
+            char buf[100];
+            unsigned int count = fread (buf, 1, sizeof(buf), file);
+            zsys_info ("Read %u bytes from file\n", count);
+            zchunk_t *filedata = zchunk_new ((const void *) buf, count);
+            if (count > 0) {
+              joe_proto_set_id (msg, JOE_PROTO_CHUNK);
+              joe_proto_set_filename (msg, filename_target);
+              joe_proto_set_offset (msg, scanf ("%lu", &file_size_so_far));
+              joe_proto_set_size (msg, scanf ("%u", &count));
+              joe_proto_set_checksum (msg, scanf ("%u", &checksum)); //TODO: checksum
+              joe_proto_set_data (msg, &filedata);
+              file_size_so_far += count;
+            } else {
+              joe_proto_set_id (msg, JOE_PROTO_CLOSE);
+              joe_proto_set_filename (msg, filename_target);
+              joe_proto_set_size (msg, scanf ("%lu", &file_size_so_far));
+              finished = 1;
+            }
+            joe_proto_print (msg);
+            joe_proto_send (msg, client);
+            zchunk_destroy (&filedata);
+        }
     }
-    fclose(file_);
+
+    joe_proto_destroy (&msg);
+    zsock_destroy (&client);
 }
 
 int main (int argc, char *argv [])
 {
     bool verbose = false;
-    char* url_ = NULL;
-    char* file_ = NULL;
     int argn;
     for (argn = 1; argn < argc; argn++) {
         if (streq (argv [argn], "--help")
@@ -70,24 +119,12 @@ int main (int argc, char *argv [])
             puts ("joec [options] ...");
             puts ("  --verbose / -v         verbose test output");
             puts ("  --help / -h            this information");
-            puts ("  --server url / -s url  specify target server");
-            puts ("  --file file / -f file  specify the filename");
             return 0;
         }
         else
         if (streq (argv [argn], "--verbose")
         ||  streq (argv [argn], "-v"))
             verbose = true;
-        else if(streq (argv [argn], "--server")
-        ||  streq (argv [argn], "-s")) {
-            url_ = strdup(argv[argn + 1]);
-            ++argn;
-        }
-        else if(streq (argv [argn], "--file")
-        ||  streq (argv [argn], "-f")) {
-            file_ = strdup(argv[argn + 1]);
-            ++argn;
-        }
         else {
             printf ("Unknown option: %s\n", argv [argn]);
             return 1;
@@ -97,40 +134,9 @@ int main (int argc, char *argv [])
     if (verbose)
         zsys_info ("joec - Joe client");
 
-    if(url_ == NULL || file_ == NULL) {
-        zsys_error("Specify the target URL and the transfered file!");
-        return -1;
-    }
-
-    zsys_init();
-
-    zsock_t *client_ = zsock_new_dealer(url_);
-
-    // send a HELLO request
-    joe_proto_t* message_ = joe_proto_new();
-    joe_proto_set_id(message_, JOE_PROTO_HELLO);
-    joe_proto_set_filename(message_, file_);
-    zhash_t* aux_ = zhash_new();
-    zhash_insert(aux_, "type", "text");
-    joe_proto_set_aux(message_, &aux_);
-    joe_proto_send(message_, client_);
-    joe_proto_destroy(&message_);
-
-    /* -- get the response */
-    joe_proto_t* response_ = joe_proto_new();
-    joe_proto_recv(response_, client_);
-    joe_proto_print(response_);
-    if(joe_proto_id(response_) == JOE_PROTO_READY) {
-        zsys_info("The server loves me!");
-        sendFile(file_, client_);
-    }
-    else {
-        zsys_info("The server hates me!");
-    }
-    joe_proto_destroy(&response_);
-
-    zclock_sleep(1000);
-    zsock_destroy (&client_);
+    zactor_t *client = zactor_new (s_actor_client, "joec");
+    zclock_sleep (5000);
+    zactor_destroy(&client);
 
     return 0;
 }

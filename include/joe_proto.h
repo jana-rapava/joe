@@ -12,6 +12,7 @@ Set the data field, transferring ownership from caller
     file, You can obtain one at http://mozilla.org/MPL/2.0/.           
     =========================================================================
 */
+#include "joe_library.h"
 
 #ifndef JOE_PROTO_H_INCLUDED
 #define JOE_PROTO_H_INCLUDED
