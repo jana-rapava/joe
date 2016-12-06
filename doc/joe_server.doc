@@ -1,0 +1,32 @@
+#### joe_server - class description
+
+joe_server - 
+
+Please add @discuss section in ../src/joe_server.c.
+
+This is the class interface:
+
+```h
+    //  Create a new joe_server
+    JOE_EXPORT joe_server_t *
+        joe_server_new (void);
+    
+    //  Destroy the joe_server
+    JOE_EXPORT void
+        joe_server_destroy (joe_server_t **self_p);
+    
+    //  Self test of this class
+    JOE_EXPORT void
+        joe_server_test (bool verbose);
+    
+```
+
+This is the class self test code:
+
+```c
+    //  Simple create/destroy test
+    joe_server_t *self = joe_server_new ();
+    assert (self);
+    joe_server_destroy (&self);
+```
+

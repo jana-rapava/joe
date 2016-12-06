@@ -346,6 +346,26 @@ AM_CONDITIONAL(ON_GNU, test "x$joe_on_gnu" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$joe_install_man" = "xyes")
 AM_CONDITIONAL(BUILD_DOC, test "x$joe_build_doc" = "xyes")
 
+# Check for joed intent
+AC_ARG_ENABLE([joed],
+    AS_HELP_STRING([--enable-joed],
+        [Compile and install 'joed' [default=yes]]),
+    [enable_joed=$enableval],
+    [enable_joed=yes])
+
+AM_CONDITIONAL([ENABLE_JOED], [test x$enable_joed != xno])
+AM_COND_IF([ENABLE_JOED], [AC_MSG_NOTICE([ENABLE_JOED defined])])
+
+# Check for joec intent
+AC_ARG_ENABLE([joec],
+    AS_HELP_STRING([--enable-joec],
+        [Compile and install 'joec' [default=yes]]),
+    [enable_joec=$enableval],
+    [enable_joec=yes])
+
+AM_CONDITIONAL([ENABLE_JOEC], [test x$enable_joec != xno])
+AM_COND_IF([ENABLE_JOEC], [AC_MSG_NOTICE([ENABLE_JOEC defined])])
+
 # Check for joe_selftest intent
 AC_ARG_ENABLE([joe_selftest],
     AS_HELP_STRING([--enable-joe_selftest],
@@ -368,8 +388,49 @@ AC_SUBST([pkgconfigdir])
 
 
 # enable specific system integration features
-#   Project has no stable classes so enable draft API by default
-enable_drafts=yes
+AC_ARG_WITH([systemd-units],
+    AS_HELP_STRING([--with-systemd-units],
+    [Build and install with systemd units integration [default=no]]),
+    [with_systemd_units=$withval],
+    [with_systemd_units=no])
+
+PKG_PROG_PKG_CONFIG
+AC_ARG_WITH([systemdsystemunitdir],
+     [AS_HELP_STRING([--with-systemdsystemunitdir=DIR], [Directory for systemd service files])],,
+     [with_systemdsystemunitdir=auto])
+AS_IF([test "x$with_systemdsystemunitdir" = "xyes" -o "x$with_systemdsystemunitdir" = "xauto"], [
+     def_systemdsystemunitdir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)
+
+     AS_IF([test "x$def_systemdsystemunitdir" = "x"],
+   [AS_IF([test "x$with_systemdsystemunitdir" = "xyes"],
+    [AC_MSG_ERROR([systemd support requested but pkg-config unable to query systemd package])])
+    with_systemdsystemunitdir=no],
+   [with_systemdsystemunitdir="$def_systemdsystemunitdir"])])
+AS_IF([test "x$with_systemdsystemunitdir" != "xno"],
+      [AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])])
+
+AM_CONDITIONAL([WITH_SYSTEMD_UNITS], [test "x$with_systemdsystemunitdir" != "xno" -a x$with_systemd_units != xno])
+
+AM_COND_IF([WITH_SYSTEMD_UNITS],
+    [AC_DEFINE(WITH_SYSTEMD_UNITS, 1, [systemd units are going to be installed])
+    AC_SUBST(WITH_SYSTEMD_UNITS)],
+    [])
+
+if test "x$cross_compiling" = "xyes"; then
+    #   Enable draft by default when cross-compiling
+    defaultval=yes
+else
+    # enable draft API by default if we're in a git repository
+    # else disable it by default; then allow --enable-drafts=yes/no override
+    AC_CHECK_FILE($srcdir/.git, [defaultval=yes], [defaultval=no])
+fi
+
+AC_ARG_ENABLE([drafts],
+    AS_HELP_STRING([--enable-drafts],
+        [Build and install draft classes and methods [default=yes]]),
+    [enable_drafts=$enableval],
+    [enable_drafts=$defaultval])
+
 AM_CONDITIONAL([ENABLE_DRAFTS], [test x$enable_drafts != xno])
 
 if test "x$enable_drafts" = "xyes"; then
@@ -385,7 +446,14 @@ fi
 AC_CONFIG_FILES([Makefile
                  doc/Makefile
                  src/libjoe.pc
+                 src/joed.cfg
                  ])
+
+AM_COND_IF([WITH_SYSTEMD_UNITS],
+    [AC_CONFIG_FILES([
+                 src/joed.service
+    ])],
+    [])
 
 
 AC_OUTPUT

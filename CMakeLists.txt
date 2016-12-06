@@ -22,7 +22,18 @@ set(pkg_config_libs_private "")
 ########################################################################
 # options
 ########################################################################
-OPTION (ENABLE_DRAFTS "Build and install draft classes and methods" ON)
+if (NOT CMAKE_BUILD_TYPE)
+    if (EXISTS "${SOURCE_DIR}/.git")
+        set (CMAKE_BUILD_TYPE Debug)
+    else ()
+        set (CMAKE_BUILD_TYPE Release)
+    endif ()
+endif ()
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    OPTION (ENABLE_DRAFTS "Build and install draft classes and methods" ON)
+else ()
+    OPTION (ENABLE_DRAFTS "Build and install draft classes and methods" OFF)
+endif ()
 IF (ENABLE_DRAFTS)
     ADD_DEFINITIONS (-DJOE_BUILD_DRAFT_API)
 ENDIF (ENABLE_DRAFTS)
@@ -109,13 +120,9 @@ ENDIF (CZMQ_FOUND)
 set (joe_headers
     include/joe_library.h
     include/joe.h
+    include/joe_server.h
+    include/joe_proto.h
 )
-
-IF (ENABLE_DRAFTS)
-    list(APPEND joe_headers
-        include/joe_proto.h
-    )
-ENDIF (ENABLE_DRAFTS)
 
 source_group ("Header Files" FILES ${joe_headers})
 install(FILES ${joe_headers} DESTINATION include)
@@ -125,14 +132,9 @@ install(FILES ${joe_headers} DESTINATION include)
 ########################################################################
 include_directories("${SOURCE_DIR}/src" "${SOURCE_DIR}/include")
 set (joe_sources
+    src/joe_server.c
+    src/joe_proto.c
 )
-
-IF (ENABLE_DRAFTS)
-    list (APPEND joe_sources
-        src/joe_proto.c
-    )
-ENDIF (ENABLE_DRAFTS)
-
 source_group("Source Files" FILES ${joe_sources})
 if (NOT DEFINED BUILD_SHARED_LIBS)
     SET(BUILD_SHARED_LIBS ON)
@@ -181,6 +183,36 @@ install(
 # executables
 ########################################################################
 add_executable(
+    joed
+    "${SOURCE_DIR}/src/joed.c"
+)
+target_link_libraries(
+    joed
+    joe
+    ${LIBZMQ_LIBRARIES}
+    ${CZMQ_LIBRARIES}
+    ${OPTIONAL_LIBRARIES}
+)
+set_target_properties(
+    joed
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
+)
+add_executable(
+    joec
+    "${SOURCE_DIR}/src/joec.c"
+)
+target_link_libraries(
+    joec
+    joe
+    ${LIBZMQ_LIBRARIES}
+    ${CZMQ_LIBRARIES}
+    ${OPTIONAL_LIBRARIES}
+)
+set_target_properties(
+    joec
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
+)
+add_executable(
     joe_selftest
     "${SOURCE_DIR}/src/joe_selftest.c"
 )
@@ -210,13 +242,9 @@ if(UNIX)
 endif()
 
 set(TEST_CLASSES
-)
-
-IF (ENABLE_DRAFTS)
-    list (APPEND TEST_CLASSES
+    joe_server
     joe_proto
-    )
-ENDIF (ENABLE_DRAFTS)
+)
 
 foreach(TEST_CLASS ${TEST_CLASSES})
     add_test(
@@ -248,6 +276,8 @@ set(cmake_generated ${CMAKE_BINARY_DIR}/CMakeCache.txt
                     ${CMAKE_BINARY_DIR}/src/libjoe.pc
                     ${CMAKE_BINARY_DIR}/src/libjoe.so
                     ${CMAKE_BINARY_DIR}/src/joe_selftest
+                    ${CMAKE_BINARY_DIR}/src/joed
+                    ${CMAKE_BINARY_DIR}/src/joec
                     ${CMAKE_BINARY_DIR}/src/joe_selftest
 )
 

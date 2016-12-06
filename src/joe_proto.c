@@ -22,7 +22,7 @@
 @end
 */
 
-#include "../include/joe_proto.h"
+#include "../include/joe.h"
 
 //  Structure of our class
 
