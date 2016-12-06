@@ -106,13 +106,21 @@ joe_server_test (bool verbose)
     joe_proto_set_filename(message_, "/etc/passwd");
     joe_proto_send(message_, client_);
     joe_proto_destroy(&message_);
-
-//    zclock_sleep(1000);
-
     joe_proto_t* response_ = joe_proto_new();
     joe_proto_recv(response_, client_);
     joe_proto_print(response_);
     assert(joe_proto_id(response_) == JOE_PROTO_READY);
+    joe_proto_destroy(&response_);
+
+    /* -- invalid command */
+    message_ = joe_proto_new();
+    joe_proto_set_id(message_, JOE_PROTO_READY);
+    joe_proto_send(message_, client_);
+    joe_proto_destroy(&message_);
+    response_ = joe_proto_new();
+    joe_proto_recv(response_, client_);
+    joe_proto_print(response_);
+    assert(joe_proto_id(response_) == JOE_PROTO_ERROR);
     joe_proto_destroy(&response_);
 
     zsock_destroy(&client_);
