@@ -22,6 +22,7 @@
 
 #include <czmq.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "joe_proto.h"
 
@@ -67,6 +68,31 @@ void joe_server_actor(
             joe_proto_set_routing_id(response_, joe_proto_routing_id(message_));
             if(joe_proto_id(message_) == JOE_PROTO_HELLO) {
                 joe_proto_set_id(response_, JOE_PROTO_READY);
+            }
+            else if(joe_proto_id(message_) == JOE_PROTO_CHUNK) {
+                zsys_info("  filename: %s", joe_proto_filename(message_));
+                zsys_info("  offset: %lld", joe_proto_offset(message_));
+                zsys_info("  size: %lld", joe_proto_size(message_));
+                zsys_info("  checksum: %llx", joe_proto_checksum(message_));
+                zchunk_t* data_ = joe_proto_data(message_);
+
+                FILE* file_ = fopen(joe_proto_filename(message_), "wb");
+                if(file_ != NULL) {
+                    if(fseek(file_, joe_proto_offset(message_), SEEK_SET) == joe_proto_offset(message_)) {
+                        zchunk_write(data_, file_);
+                        fclose(file_);
+                        joe_proto_set_id(response_, JOE_PROTO_READY);
+                    }
+                    else {
+                        joe_proto_set_id(response_, JOE_PROTO_ERROR);
+                        joe_proto_set_reason(response_, "Cannot write into the file.");
+                    }
+                }
+                else {
+                    joe_proto_set_id(response_, JOE_PROTO_ERROR);
+                    joe_proto_set_reason(response_, "Cannot open the file.");
+                }
+//                zchunk_destroy(&data_);
             }
             else {
                 joe_proto_set_id(response_, JOE_PROTO_ERROR);
