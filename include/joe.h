@@ -19,6 +19,11 @@
 //  Include the project library file
 #include "joe_library.h"
 
+
+// joe's server
+void
+joes_server (zsock_t *pipe, void *args);
+
 //  Add your own public definitions here, if you need them
 
 #endif
