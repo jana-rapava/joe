@@ -13,6 +13,7 @@ services:
 env:
   matrix:
   - BUILD_TYPE=default
+  - BUILD_TYPE=default-Werror
 
 # osx environment does not have docker
 matrix:
