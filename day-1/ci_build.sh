@@ -75,9 +75,9 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "valgrind" ]; then
         # Simple build
         case "$BUILD_TYPE" in
             "valgrind")
-                make prefix=${BUILD_PREFIX} memcheck ;;
+                make prefix=${BUILD_PREFIX} LD="ld -lc --entry main" DEBUG=y memcheck ;;
             "default")
-                make prefix=${BUILD_PREFIX} all ;;
+                make prefix=${BUILD_PREFIX} LD="ld -lc --entry main" all ;;
         esac
     else
         # Build and check this project
