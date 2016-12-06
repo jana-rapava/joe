@@ -1,0 +1,274 @@
+joe_proto(3)
+============
+
+NAME
+----
+joe_proto - joe example protocol
+
+SYNOPSIS
+--------
+----
+//  This API is a draft, and may change without notice.
+#ifdef JOE_BUILD_DRAFT_API
+#define JOE_PROTO_HELLO 1                   // 
+#define JOE_PROTO_CHUNK 2                   // 
+#define JOE_PROTO_CLOSE 3                   // 
+#define JOE_PROTO_READY 4                   // 
+#define JOE_PROTO_ERROR 5                   // 
+
+//  *** Draft method, for development use, may change without warning ***
+//  Create a new empty joe_proto
+JOE_EXPORT joe_proto_t *
+    joe_proto_new (void);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Destroy a joe_proto instance
+JOE_EXPORT void
+    joe_proto_destroy (joe_proto_t **self_p);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Receive a joe_proto from the socket. Returns 0 if OK, -1 if
+//  there was an error. Blocks if there is no message waiting. 
+JOE_EXPORT int
+    joe_proto_recv (joe_proto_t *self, zsock_t *input);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Send the joe_proto to the output socket, does not destroy it
+JOE_EXPORT int
+    joe_proto_send (joe_proto_t *self, zsock_t *output);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Print contents of message to stdout
+JOE_EXPORT void
+    joe_proto_print (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Get the message routing id, as a frame
+JOE_EXPORT zframe_t *
+    joe_proto_routing_id (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Set the message routing id from a frame
+JOE_EXPORT void
+    joe_proto_set_routing_id (joe_proto_t *self, zframe_t *routing_id);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Get the joe_proto message id
+JOE_EXPORT int
+    joe_proto_id (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Set the joe_proto message id
+JOE_EXPORT void
+    joe_proto_set_id (joe_proto_t *self, int id);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Get the joe_proto message id as printable text
+JOE_EXPORT const char *
+    joe_proto_command (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Get the filename field
+JOE_EXPORT const char *
+    joe_proto_filename (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Set the filename field
+JOE_EXPORT void
+    joe_proto_set_filename (joe_proto_t *self, const char *filename);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Get a copy of the aux field
+JOE_EXPORT zhash_t *
+    joe_proto_aux (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Get the aux field and transfer ownership to caller
+JOE_EXPORT zhash_t *
+    joe_proto_get_aux (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  
+JOE_EXPORT void
+    joe_proto_set_aux (joe_proto_t *self, zhash_t **aux_p);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Get the offset field
+JOE_EXPORT uint64_t
+    joe_proto_offset (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Set the offset field
+JOE_EXPORT void
+    joe_proto_set_offset (joe_proto_t *self, uint64_t offset);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Get the size field
+JOE_EXPORT uint64_t
+    joe_proto_size (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Set the size field
+JOE_EXPORT void
+    joe_proto_set_size (joe_proto_t *self, uint64_t size);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Get the checksum field
+JOE_EXPORT uint64_t
+    joe_proto_checksum (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Set the checksum field
+JOE_EXPORT void
+    joe_proto_set_checksum (joe_proto_t *self, uint64_t checksum);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Get a copy of the data field
+JOE_EXPORT zchunk_t *
+    joe_proto_data (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Get the data field and transfer ownership to caller
+JOE_EXPORT zchunk_t *
+    joe_proto_get_data (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  
+JOE_EXPORT void
+    joe_proto_set_data (joe_proto_t *self, zchunk_t **data_p);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Get the reason field
+JOE_EXPORT const char *
+    joe_proto_reason (joe_proto_t *self);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Set the reason field
+JOE_EXPORT void
+    joe_proto_set_reason (joe_proto_t *self, const char *reason);
+
+//  *** Draft method, for development use, may change without warning ***
+//  Self test of this class.
+JOE_EXPORT void
+    joe_proto_test (bool verbose);
+
+#endif // JOE_BUILD_DRAFT_API
+----
+
+DESCRIPTION
+-----------
+
+joe_proto - joe example protocol
+
+Please add @discuss section in ../src/joe_proto.c.
+
+EXAMPLE
+-------
+.From joe_proto_test method
+----
+//  Simple create/destroy test
+joe_proto_t *self = joe_proto_new ();
+assert (self);
+joe_proto_destroy (&self);
+//  Create pair of sockets we can send through
+//  We must bind before connect if we wish to remain compatible with ZeroMQ < v4
+zsock_t *output = zsock_new (ZMQ_DEALER);
+assert (output);
+int rc = zsock_bind (output, "inproc://selftest-joe_proto");
+assert (rc == 0);
+
+zsock_t *input = zsock_new (ZMQ_ROUTER);
+assert (input);
+rc = zsock_connect (input, "inproc://selftest-joe_proto");
+assert (rc == 0);
+
+
+//  Encode/send/decode and verify each message type
+int instance;
+self = joe_proto_new ();
+joe_proto_set_id (self, JOE_PROTO_HELLO);
+
+joe_proto_set_filename (self, "Life is short but Now lasts for ever");
+zhash_t *hello_aux = zhash_new ();
+zhash_insert (hello_aux, "Name", "Brutus");
+joe_proto_set_aux (self, &hello_aux);
+//  Send twice
+joe_proto_send (self, output);
+joe_proto_send (self, output);
+
+for (instance = 0; instance < 2; instance++) {
+    joe_proto_recv (self, input);
+    assert (joe_proto_routing_id (self));
+    assert (streq (joe_proto_filename (self), "Life is short but Now lasts for ever"));
+    zhash_t *aux = joe_proto_get_aux (self);
+    assert (zhash_size (aux) == 2);
+    assert (streq ((char *) zhash_first (aux), "Brutus"));
+    assert (streq ((char *) zhash_cursor (aux), "Name"));
+    zhash_destroy (&aux);
+    if (instance == 1)
+        zhash_destroy (&hello_aux);
+}
+joe_proto_set_id (self, JOE_PROTO_CHUNK);
+
+joe_proto_set_filename (self, "Life is short but Now lasts for ever");
+joe_proto_set_offset (self, 123);
+joe_proto_set_size (self, 123);
+joe_proto_set_checksum (self, 123);
+zchunk_t *chunk_data = zchunk_new ("Captcha Diem", 12);
+joe_proto_set_data (self, &chunk_data);
+//  Send twice
+joe_proto_send (self, output);
+joe_proto_send (self, output);
+
+for (instance = 0; instance < 2; instance++) {
+    joe_proto_recv (self, input);
+    assert (joe_proto_routing_id (self));
+    assert (streq (joe_proto_filename (self), "Life is short but Now lasts for ever"));
+    assert (joe_proto_offset (self) == 123);
+    assert (joe_proto_size (self) == 123);
+    assert (joe_proto_checksum (self) == 123);
+    assert (memcmp (zchunk_data (joe_proto_data (self)), "Captcha Diem", 12) == 0);
+    if (instance == 1)
+        zchunk_destroy (&chunk_data);
+}
+joe_proto_set_id (self, JOE_PROTO_CLOSE);
+
+joe_proto_set_filename (self, "Life is short but Now lasts for ever");
+joe_proto_set_size (self, 123);
+//  Send twice
+joe_proto_send (self, output);
+joe_proto_send (self, output);
+
+for (instance = 0; instance < 2; instance++) {
+    joe_proto_recv (self, input);
+    assert (joe_proto_routing_id (self));
+    assert (streq (joe_proto_filename (self), "Life is short but Now lasts for ever"));
+    assert (joe_proto_size (self) == 123);
+}
+joe_proto_set_id (self, JOE_PROTO_READY);
+
+//  Send twice
+joe_proto_send (self, output);
+joe_proto_send (self, output);
+
+for (instance = 0; instance < 2; instance++) {
+    joe_proto_recv (self, input);
+    assert (joe_proto_routing_id (self));
+}
+joe_proto_set_id (self, JOE_PROTO_ERROR);
+
+joe_proto_set_reason (self, "Life is short but Now lasts for ever");
+//  Send twice
+joe_proto_send (self, output);
+joe_proto_send (self, output);
+
+for (instance = 0; instance < 2; instance++) {
+    joe_proto_recv (self, input);
+    assert (joe_proto_routing_id (self));
+    assert (streq (joe_proto_reason (self), "Life is short but Now lasts for ever"));
+}
+
+joe_proto_destroy (&self);
+zsock_destroy (&input);
+zsock_destroy (&output);
+----
