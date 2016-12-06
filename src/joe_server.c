@@ -101,6 +101,7 @@ joes_server (zsock_t *pipe, void *args)
                 else
                 {
                     char *endpoint = zmsg_popstr (msg);
+                    zsys_debug ("endpoint=%s", endpoint);
                     svr = zsock_new_router (endpoint);
                     zpoller_add (poller, svr);
                     zstr_free (&endpoint);
@@ -253,16 +254,15 @@ joe_server_test (bool verbose)
 
     //  @selftest
     //  Simple create/destroy test
-    joe_server_t *self = joe_server_new ();
-    assert (self);
+    static const char *endpoint = "inproc://joe_server_test";
 
     zactor_t *server = zactor_new (joes_server, "joes_server");
-    //    zactor_t *client = zactor_new (test_client, "test_client");
+    zstr_sendx (server, "BIND", endpoint, NULL);
 
+    zclock_sleep (1000);
 
     //    zactor_destroy (&client);
     zactor_destroy (&server);
-    joe_server_destroy (&self);
     //  @end
     printf ("OK\n");
 }
