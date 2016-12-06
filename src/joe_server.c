@@ -23,14 +23,7 @@
 #include <czmq.h>
 #include <stdlib.h>
 
-<<<<<<< HEAD
 #include "joe_proto.h"
-=======
-struct _joe_server_t {
-    int filler;     //  Declare class properties here
-
-};
->>>>>>> 5652ffe069070bfe97780dcb01016d87401f8fad
 
 void joe_server_actor(
         zsock_t* pipe_,
@@ -273,7 +266,6 @@ joe_server_test (bool verbose)
        
     printf (" * joe_server: \n");
 
-<<<<<<< HEAD
     JoeServerActorParams params_ = {"server1", JOE_SERVER_TEST_SERVICE_URL};
     zactor_t *server_ = zactor_new(joe_server_actor, &params_);
     assert(server_ != NULL);
@@ -310,20 +302,5 @@ joe_server_test (bool verbose)
     zsock_wait(server_);
     zactor_destroy(&server_);
 
-=======
-    //  @selftest
-    //  Simple create/destroy test
-    joe_server_t *self = joe_server_new ();
-    assert (self);
-
-    zactor_t *server = zactor_new (joes_server, "joes_server");
-    //    zactor_t *client = zactor_new (test_client, "test_client");
-
-
-    //    zactor_destroy (&client);
-    zactor_destroy (&server);
-    joe_server_destroy (&self);
-    //  @end
->>>>>>> 5652ffe069070bfe97780dcb01016d87401f8fad
     printf ("OK\n");
 }
