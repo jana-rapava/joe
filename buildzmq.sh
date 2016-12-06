@@ -23,7 +23,7 @@ for repo in $REPOS ; do
 #    pushd "${repo}.git" &&    git clean -fxd && \
     pushd "${repo}.git" && \
     ./autogen.sh && \
-    PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH} ./configure --with-docs=no && \
+    PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:${PKG_CONFIG_PATH} ./configure --with-docs=no CFLAGS="-g3 -gdwarf-2 -O0" CXXFLAGS="-g3 -gdwarf-2 -O0" && \
     make && \
     make ZMQ_DISABLE_TEST_TIMEOUT=1 check && \
     sudo make install || die "Failed to build and install ZeroMQ component '${repo}'"
