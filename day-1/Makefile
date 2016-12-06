@@ -59,4 +59,4 @@ memcheck: all $(MEMCHECK_PROGS)
 
 .PHONY: clean
 clean:
-	rm -f *.o $(PROGS) $(JOE_PROGS) vgcore*
+	rm -f *.o */*.o $(PROGS) $(JOE_PROGS) vgcore*
