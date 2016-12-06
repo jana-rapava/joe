@@ -9,16 +9,27 @@ Artifact("libocontrol.lib", "lib");
     "ocontrol.zprot",
   ]);
 EndArtifact();
+
+Artifact("libfmqsrv.lib", "lib");
+  Src([
+    "fmqsrv.c",
+    "fmqsrv.h",
+  ]);
+
+  Deps("link", [
+  ]);
+EndArtifact();
   
 Artifact("fmqsrv", "bin");
   Profile("zeromq");
   
   Src([
-    "fmqsrv.c",
+    "fmqsrvmain.c",
   ]);
 
   Deps("link", [
     "libfmq.lib",
+    "libfmqsrv.lib",
     "libocontrol.lib",
   ]);
 EndArtifact();

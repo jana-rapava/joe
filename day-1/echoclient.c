@@ -3,7 +3,7 @@ int main (void)
 {
     zsock_t *push = zsock_new_push ("tcp://192.168.1.107:7777");
 
-    for (;;) {
+    while (!zsys_interrupted) {
         zstr_send (push, "Jana Rapava");
         sleep (5);
     }

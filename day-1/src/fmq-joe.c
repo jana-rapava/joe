@@ -48,7 +48,7 @@ void s_server_actor (zsock_t *pipe, void *args)
             int r = rand();
             if (r < RAND_MAX / 5) {
                 joe_proto_set_id (response, JOE_PROTO_ERROR);
-                joe_proto_set_reason (response, "server not ready");
+                joe_proto_set_reason (response, "server not ready (random)");
             }
             else {
                 if (state == 0 && joe_proto_id (msg2) != JOE_PROTO_HELLO) {
