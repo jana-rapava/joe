@@ -59,3 +59,17 @@ Artifact("ctrl", "bin");
     "libocontrol.lib",
   ]);
 EndArtifact();
+
+Artifact("gcs", "bin");
+  Profile("amplo");
+  Profile("ogetopt");
+  Profile("zeromq");
+  
+  Src([
+    "gcs.cpp",
+  ]);
+
+  Deps("link", [
+    
+  ]);
+EndArtifact();

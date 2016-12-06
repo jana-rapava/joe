@@ -19,8 +19,44 @@
 */
 
 #include <czmq.h>
+#include <stdio.h>
 
 #include "joe.h"
+
+#define CHUNK_SIZE 1024
+
+static
+void sendFile(
+        const char* filename_,
+        zsock_t* client_) {
+    FILE* file_ = fopen(filename_, "rb");
+    zchunk_t* chunk_ = zchunk_read(file_, CHUNK_SIZE);
+    uint64_t offset_ = 0;
+    while(chunk_ != NULL) {
+        uint64_t size_ = zchunk_size(chunk_);
+        joe_proto_t* message_ = joe_proto_new();
+        joe_proto_set_id(message_, JOE_PROTO_CHUNK);
+        joe_proto_set_size(message_, size_);
+        joe_proto_set_offset(message_, offset_);
+        joe_proto_set_filename(message_, filename_);
+        joe_proto_set_checksum(message_, 0);
+        joe_proto_set_data(message_, &chunk_);
+        joe_proto_send(message_, client_);
+        joe_proto_destroy(&message_);
+
+        joe_proto_t* response_ = joe_proto_new();
+        joe_proto_recv(response_, client_);
+        if(joe_proto_id(response_) != JOE_PROTO_READY) {
+            joe_proto_destroy(&response_);
+            break;
+        }
+        joe_proto_destroy(&response_);
+
+        offset_ += size_;
+        chunk_ = zchunk_read(file_, CHUNK_SIZE);
+    }
+    fclose(file_);
+}
 
 int main (int argc, char *argv [])
 {
@@ -68,7 +104,7 @@ int main (int argc, char *argv [])
 
     zsys_init();
 
-    zsock_t *client = zsock_new_dealer(url_);
+    zsock_t *client_ = zsock_new_dealer(url_);
 
     // send a HELLO request
     joe_proto_t* message_ = joe_proto_new();
@@ -77,15 +113,16 @@ int main (int argc, char *argv [])
     zhash_t* aux_ = zhash_new();
     zhash_insert(aux_, "type", "text");
     joe_proto_set_aux(message_, &aux_);
-    joe_proto_send(message_, client);
+    joe_proto_send(message_, client_);
     joe_proto_destroy(&message_);
 
     /* -- get the response */
     joe_proto_t* response_ = joe_proto_new();
-    joe_proto_recv(response_, client);
+    joe_proto_recv(response_, client_);
     joe_proto_print(response_);
     if(joe_proto_id(response_) == JOE_PROTO_READY) {
         zsys_info("The server loves me!");
+        sendFile(file_, client_);
     }
     else {
         zsys_info("The server hates me!");
@@ -93,7 +130,7 @@ int main (int argc, char *argv [])
     joe_proto_destroy(&response_);
 
     zclock_sleep(1000);
-    zsock_destroy (&client);
+    zsock_destroy (&client_);
 
     return 0;
 }

@@ -65,7 +65,7 @@ int main (int argc, char *argv [])
     JoeServerActorParams params_ = {"server1", url_};
     zactor_t *server_ = zactor_new(joe_server_actor, &params_);
 
-    zclock_sleep(10000);
+    zclock_sleep(60 * 1000);
 
     zstr_sendx(server_, "QUIT", NULL);
     zsock_wait(server_);
