@@ -20,40 +20,68 @@
 
 #include "joe_classes.h"
 
-//  Structure of our class
+#include <czmq.h>
+#include <stdlib.h>
 
-struct _joe_server_t {
-    int filler;     //  Declare class properties here
-};
+#include "joe_proto.h"
 
+void joe_server_actor(
+        zsock_t* pipe_,
+        void* udata_) {
+    JoeServerActorParams* params_ = (JoeServerActorParams*) udata_;
+    char* name_ = strdup(params_ -> actor_name);
+    char* url_ = strdup(params_ -> bind_url);
 
-//  --------------------------------------------------------------------------
-//  Create a new joe_server
+    zsock_t* server_ = zsock_new_router(url_);
+    zpoller_t* poller_ = zpoller_new(pipe_, server_, NULL);
 
-joe_server_t *
-joe_server_new (void)
-{
-    joe_server_t *self = (joe_server_t *) zmalloc (sizeof (joe_server_t));
-    assert (self);
-    //  Initialize class properties here
-    return self;
-}
+    // to signal to runtime it should spawn the thread
+    zsock_signal(pipe_, 0);
+    zsys_debug("%s: started", name_);
 
+    while(!zsys_interrupted) {
+        /* -- wait for an event */
+        void* which_ = zpoller_wait(poller_, -1);
+        if(!which_)
+            break;
 
-//  --------------------------------------------------------------------------
-//  Destroy the joe_server
+        if(which_ == pipe_) {
+            zmsg_t* msg_ = zmsg_recv(pipe_);
+            zmsg_print(msg_);
+            char* command_ = zmsg_popstr(msg_);
+            if(strcmp(command_, "QUIT") == 0) {
+                zsys_debug("%s: quit", name_);
+                zstr_free(&command_);
+                break;
+            }
+            zstr_free(&command_);
+        }
+        else if(which_ == server_) {
+            joe_proto_t* message_ = joe_proto_new();
+            joe_proto_recv(message_, server_);
+            joe_proto_print(message_);
 
-void
-joe_server_destroy (joe_server_t **self_p)
-{
-    assert (self_p);
-    if (*self_p) {
-        joe_server_t *self = *self_p;
-        //  Free class properties here
-        //  Free object itself
-        free (self);
-        *self_p = NULL;
+            joe_proto_t* response_ = joe_proto_new();
+            joe_proto_set_routing_id(response_, joe_proto_routing_id(message_));
+            if(joe_proto_id(message_) == JOE_PROTO_HELLO) {
+                joe_proto_set_id(response_, JOE_PROTO_READY);
+            }
+            else {
+                joe_proto_set_id(response_, JOE_PROTO_ERROR);
+                joe_proto_set_reason(response_, "Invalid protocol command");
+            }
+            joe_proto_send(response_, server_);
+
+            joe_proto_destroy(&message_);
+            joe_proto_destroy(&response_);
+        }
     }
+
+    zpoller_destroy(&poller_);
+    zsock_destroy(&server_);
+    free(name_);
+    free(url_);
+    zsock_signal(pipe_, 0);
 }
 
 //  --------------------------------------------------------------------------
@@ -64,11 +92,33 @@ joe_server_test (bool verbose)
 {
     printf (" * joe_server: ");
 
-    //  @selftest
-    //  Simple create/destroy test
-    joe_server_t *self = joe_server_new ();
-    assert (self);
-    joe_server_destroy (&self);
-    //  @end
+    JoeServerActorParams params_ = {"server1", JOE_SERVER_TEST_SERVICE_URL};
+    zactor_t *server_ = zactor_new(joe_server_actor, &params_);
+    assert(server_ != NULL);
+
+    zsock_t *client_ = zsock_new_dealer(JOE_SERVER_TEST_SERVICE_URL);
+
+    /* -- test the HELLO message */
+    joe_proto_t* message_ = joe_proto_new();
+    joe_proto_set_id(message_, JOE_PROTO_HELLO);
+    joe_proto_set_filename(message_, "/etc/passwd");
+    joe_proto_send(message_, client_);
+    joe_proto_destroy(&message_);
+
+    zclock_sleep(1000);
+
+    joe_proto_t* response_ = joe_proto_new();
+    joe_proto_recv(response_, client_);
+    joe_proto_print(response_);
+    assert(joe_proto_id(response_) == JOE_PROTO_READY);
+    joe_proto_destroy(&response_);
+
+    zsock_destroy(&client_);
+
+    /* -- finish the server */
+    zstr_sendx(server_, "QUIT", NULL);
+    zsock_wait(server_);
+    zactor_destroy(&server_);
+
     printf ("OK\n");
 }
