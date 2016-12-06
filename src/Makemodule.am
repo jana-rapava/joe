@@ -14,21 +14,14 @@ pkgconfig_DATA = src/libjoe.pc
 
 include_HEADERS = \
     include/joe.h \
+    include/joe_server.h \
+    include/joe_proto.h \
     include/joe_library.h
 
-if ENABLE_DRAFTS
-include_HEADERS += \
-    include/joe_proto.h
-
-endif
 src_libjoe_la_SOURCES = \
+    src/joe_server.c \
+    src/joe_proto.c \
     src/platform.h
-
-if ENABLE_DRAFTS
-src_libjoe_la_SOURCES += \
-    src/joe_proto.c
-
-endif
 
 src_libjoe_la_CPPFLAGS = ${AM_CPPFLAGS}
 
@@ -50,6 +43,29 @@ endif
 
 src_libjoe_la_LIBADD = ${project_libs}
 
+if WITH_SYSTEMD_UNITS
+systemdsystemunit_DATA =
+endif #WITH_SYSTEMD_UNITS
+
+if ENABLE_JOED
+bin_PROGRAMS += src/joed
+src_joed_CPPFLAGS = ${AM_CPPFLAGS}
+src_joed_LDADD = ${program_libs}
+src_joed_SOURCES = src/joed.c
+src_joed_config_DATA = src/joed.cfg
+src_joed_configdir = $(sysconfdir)/joe
+if WITH_SYSTEMD_UNITS
+systemdsystemunit_DATA += src/joed.service
+endif #WITH_SYSTEMD_UNITS
+endif #ENABLE_JOED
+
+if ENABLE_JOEC
+bin_PROGRAMS += src/joec
+src_joec_CPPFLAGS = ${AM_CPPFLAGS}
+src_joec_LDADD = ${program_libs}
+src_joec_SOURCES = src/joec.c
+endif #ENABLE_JOEC
+
 if ENABLE_JOE_SELFTEST
 check_PROGRAMS += src/joe_selftest
 noinst_PROGRAMS += src/joe_selftest
@@ -65,6 +81,8 @@ dist_api_DATA = \
 
 # define custom target for all products of /src
 src:
+	src/joed \
+	src/joec \
 	src/joe_selftest \
 	src/libjoe.la
 

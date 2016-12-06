@@ -96,7 +96,7 @@ src/src_joe_selftest-joe_selftest.o: src/joe_selftest.c \
  /usr/local/include/zproxy.h /usr/local/include/zrex.h \
  /usr/local/include/zsys.h /usr/local/include/zproc.h \
  /usr/local/include/ztimerset.h /usr/local/include/ztrie.h \
- src/../include/joe_proto.h
+ src/../include/joe_server.h src/../include/joe_proto.h
 
 /usr/include/stdc-predef.h:
 
@@ -489,5 +489,7 @@ src/../include/joe_library.h:
 /usr/local/include/ztimerset.h:
 
 /usr/local/include/ztrie.h:
+
+src/../include/joe_server.h:
 
 src/../include/joe_proto.h:

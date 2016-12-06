@@ -1,0 +1,40 @@
+joe_server(3)
+=============
+
+NAME
+----
+joe_server - class description
+
+SYNOPSIS
+--------
+----
+//  Create a new joe_server
+JOE_EXPORT joe_server_t *
+    joe_server_new (void);
+
+//  Destroy the joe_server
+JOE_EXPORT void
+    joe_server_destroy (joe_server_t **self_p);
+
+//  Self test of this class
+JOE_EXPORT void
+    joe_server_test (bool verbose);
+
+----
+
+DESCRIPTION
+-----------
+
+joe_server - 
+
+Please add @discuss section in ../src/joe_server.c.
+
+EXAMPLE
+-------
+.From joe_server_test method
+----
+//  Simple create/destroy test
+joe_server_t *self = joe_server_new ();
+assert (self);
+joe_server_destroy (&self);
+----

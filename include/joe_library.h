@@ -58,23 +58,17 @@
 #   endif
 #endif
 
-//  Project has no stable classes, so we build the draft API
-#undef  JOE_BUILD_DRAFT_API
-#define JOE_BUILD_DRAFT_API
-
 //  Opaque class structures to allow forward references
 //  These classes are stable or legacy and built in all releases
-//  Draft classes are by default not built in stable releases
-#ifdef JOE_BUILD_DRAFT_API
+typedef struct _joe_server_t joe_server_t;
+#define JOE_SERVER_T_DEFINED
 typedef struct _joe_proto_t joe_proto_t;
 #define JOE_PROTO_T_DEFINED
-#endif // JOE_BUILD_DRAFT_API
 
 
 //  Public classes, each with its own header file
-#ifdef JOE_BUILD_DRAFT_API
+#include "joe_server.h"
 #include "joe_proto.h"
-#endif // JOE_BUILD_DRAFT_API
 
 #endif
 /*

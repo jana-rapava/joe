@@ -1,12 +1,13 @@
 src/src_libjoe_la-joe_proto.lo: src/joe_proto.c \
- /usr/include/stdc-predef.h src/../include/joe_proto.h \
- /usr/local/include/czmq.h /usr/local/include/czmq_library.h \
- /usr/local/include/czmq_prelude.h /usr/local/include/zmq.h \
- /usr/include/errno.h /usr/include/features.h /usr/include/sys/cdefs.h \
- /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
- /usr/include/gnu/stubs-64.h /usr/include/bits/errno.h \
- /usr/include/linux/errno.h /usr/include/asm/errno.h \
- /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
+ /usr/include/stdc-predef.h src/../include/joe.h \
+ src/../include/joe_library.h /usr/local/include/czmq.h \
+ /usr/local/include/czmq_library.h /usr/local/include/czmq_prelude.h \
+ /usr/local/include/zmq.h /usr/include/errno.h /usr/include/features.h \
+ /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
+ /usr/include/gnu/stubs.h /usr/include/gnu/stubs-64.h \
+ /usr/include/bits/errno.h /usr/include/linux/errno.h \
+ /usr/include/asm/errno.h /usr/include/asm-generic/errno.h \
+ /usr/include/asm-generic/errno-base.h \
  /usr/lib64/gcc/x86_64-suse-linux/4.8/include/stddef.h \
  /usr/include/stdio.h /usr/include/bits/types.h \
  /usr/include/bits/typesizes.h /usr/include/libio.h \
@@ -87,11 +88,14 @@ src/src_libjoe_la-joe_proto.lo: src/joe_proto.c \
  /usr/local/include/zmonitor.h /usr/local/include/zproxy.h \
  /usr/local/include/zrex.h /usr/local/include/zsys.h \
  /usr/local/include/zproc.h /usr/local/include/ztimerset.h \
- /usr/local/include/ztrie.h
+ /usr/local/include/ztrie.h src/../include/joe_server.h \
+ src/../include/joe_proto.h
 
 /usr/include/stdc-predef.h:
 
-src/../include/joe_proto.h:
+src/../include/joe.h:
+
+src/../include/joe_library.h:
 
 /usr/local/include/czmq.h:
 
@@ -444,3 +448,7 @@ src/../include/joe_proto.h:
 /usr/local/include/ztimerset.h:
 
 /usr/local/include/ztrie.h:
+
+src/../include/joe_server.h:
+
+src/../include/joe_proto.h:
