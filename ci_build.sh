@@ -136,10 +136,16 @@ fi # // BUILD_DRYRUN != yes
         exit $?
     fi
 
-    make VERBOSE=1 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS" distcheck
-    echo "=== Are GitIgnores good after 'make distcheck'? (should have no output below)"
-    git status -s || true
-    echo "==="
+    if [ "$BUILD_TYPE" == "default-Werror" ] ; then
+        echo "NOTE: Skipping distcheck for BUILD_TYPE='$BUILD_TYPE'" >&2
+    else
+        export DISTCHECK_CONFIGURE_FLAGS="--enable-drafts=yes ${CONFIG_OPTS[@]}"
+        make VERBOSE=1 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS" distcheck
+
+        echo "=== Are GitIgnores good after 'make distcheck' with drafts? (should have no output below)"
+        git status -s || true
+        echo "==="
+    fi
 
     # Build and check this project without DRAFT APIs
     make distclean
@@ -153,8 +159,13 @@ fi
     (
         ./autogen.sh 2> /dev/null
         ./configure --enable-drafts=no "${CONFIG_OPTS[@]}"
-        export DISTCHECK_CONFIGURE_FLAGS="--enable-drafts=no ${CONFIG_OPTS[@]}" && \
-        make VERBOSE=1 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS" distcheck
+        make VERBOSE=1 all || exit $?
+        if [ "$BUILD_TYPE" == "default-Werror" ] ; then
+            echo "NOTE: Skipping distcheck for BUILD_TYPE='$BUILD_TYPE'" >&2
+        else
+            export DISTCHECK_CONFIGURE_FLAGS="--enable-drafts=no ${CONFIG_OPTS[@]}" && \
+            make VERBOSE=1 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS" distcheck || exit $?
+        fi
     ) || exit 1
 
     echo "=== Are GitIgnores still good? (should have no output below)"
