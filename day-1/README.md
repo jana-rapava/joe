@@ -45,4 +45,5 @@ Server response: "READY" or "ERROR", "descriptive text"
   1. Try to communicate using czmq pull & push functions
   2. Try to use czmq functions router (for server) and dealer (for client) on your local machine using the protocol
   3. Try to implement by teams one server and one client using the protocol
-  4. **Try to implement a local server&client using czmq actor model and the protocol**
+  4. Try to implement a local server&client using czmq actor model and the protocol
+  5. Use joe_proto_t CLASS instead of hand written zmsg_t handling

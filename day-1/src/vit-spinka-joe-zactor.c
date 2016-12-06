@@ -1,5 +1,4 @@
-#include <czmq.h>
-#include <time.h>
+#include <joe_proto.h>
 
 static void s_actor_server(zsock_t *pipe, void *args) {
     char *name = strdup ((char*) args);
@@ -11,7 +10,6 @@ static void s_actor_server(zsock_t *pipe, void *args) {
     zsys_debug ("%s:\tstarted", name);
 
     while (!zsys_interrupted) {
-
         void *which = zpoller_wait (poller, -1);
 
         if (!which)
@@ -30,35 +28,18 @@ static void s_actor_server(zsock_t *pipe, void *args) {
             zmsg_destroy (&msg);
         }
         if (which == server) {
-          zmsg_t *msg = zmsg_recv (server);
-          zmsg_print(msg);
-  
-          zframe_t *routing_id = zmsg_pop(msg);
-          char *command_text = zmsg_popstr (msg);
-          char *command_filename = zmsg_popstr (msg);
-          zmsg_destroy (&msg);
-   
-          int ok = 1;
-          if (strcmp(command_text,"HELLO"))
-            ok = 0;
-  
-          int r = rand();
-          if (r < RAND_MAX*0.5)
-            ok = 2; 
-  
-          zmsg_t *response = zmsg_new();
-          zmsg_add (response, routing_id);
-          if (ok == 1) {
-            zmsg_addstr(response, "READY");
-            zmsg_addstr(response, command_filename);
-          } else if (ok ==0)  {
-            zmsg_addstr(response, "ERROR");
-            zmsg_addstr(response, "Invalid request");
-          } else {
-            zmsg_addstr(response, "ERROR");
-            zmsg_addstr(response, "I don't like you");
-          }
-          zmsg_send(&response, server);
+          joe_proto_t *joe = joe_proto_new();
+          joe_proto_recv(joe, server);
+          joe_proto_print(joe);
+          
+          joe_proto_t *joe_resp = joe_proto_new();
+          joe_proto_set_routing_id(joe_resp, joe_proto_routing_id(joe));
+          joe_proto_destroy(&joe);
+
+          joe_proto_set_id(joe_resp, JOE_PROTO_READY);
+          joe_proto_send (joe_resp, server);
+          joe_proto_print(joe_resp);
+          joe_proto_destroy(&joe_resp);
         }
     }
 
@@ -74,13 +55,14 @@ static void s_actor_client(zsock_t *pipe, void *args) {
     zsock_signal (pipe, 0);
     zsys_debug ("%s:\tstarted", name);
 
-    zmsg_t *msg = zmsg_new();
-    zmsg_addstr(msg, "HELLO");
-    zmsg_addstr(msg, "/root/secret.txt");
+    joe_proto_t *joe = joe_proto_new();
+    joe_proto_set_id(joe, JOE_PROTO_HELLO);
+    joe_proto_set_filename(joe, "/root/secret");
+    joe_proto_print(joe);
+    joe_proto_send(joe, client);
+    joe_proto_destroy(&joe);
+zsys_info("Client sent");
  
-    zmsg_print(msg);
-    zmsg_send(&msg, client);
-
     while (!zsys_interrupted) {
 
         void *which = zpoller_wait (poller, -1);
@@ -100,13 +82,13 @@ static void s_actor_client(zsock_t *pipe, void *args) {
             zstr_free (&command);
             zmsg_destroy (&msg);
         }
-
         if (which == client) {
-            msg = zmsg_recv (client);
-            zmsg_print(msg);
+zsys_info("Client recv");
+          joe_proto_t *joe = joe_proto_new();
+          joe_proto_recv(joe, client);
+          joe_proto_print(joe);
         }
     }
-
     zsock_destroy (&client);
 }
 
