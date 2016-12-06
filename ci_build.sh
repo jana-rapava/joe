@@ -18,8 +18,8 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "valgrind" ]; then
     CONFIG_OPTS+=("--quiet")
 
     # Clone and build dependencies
-    git clone --quiet --depth 1 https://github.com/zeromq/libzmq libzmq
-    cd libzmq
+    git clone --quiet --depth 1 https://github.com/zeromq/libzmq.git libzmq.git
+    cd libzmq.git
     git --no-pager log --oneline -n1
     if [ -e autogen.sh ]; then
         ./autogen.sh 2> /dev/null
@@ -31,8 +31,8 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "valgrind" ]; then
     make -j4
     make install
     cd ..
-    git clone --quiet --depth 1 https://github.com/zeromq/czmq czmq
-    cd czmq
+    git clone --quiet --depth 1 https://github.com/zeromq/czmq.git czmq.git
+    cd czmq.git
     git --no-pager log --oneline -n1
     if [ -e autogen.sh ]; then
         ./autogen.sh 2> /dev/null
@@ -44,8 +44,8 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "valgrind" ]; then
     make -j4
     make install
     cd ..
-    git clone --quiet --depth 1 https://github.com/zeromq/malamute malamute
-    cd malamute
+    git clone --quiet --depth 1 https://github.com/zeromq/malamute.git malamute.git
+    cd malamute.git
     git --no-pager log --oneline -n1
     if [ -e autogen.sh ]; then
         ./autogen.sh 2> /dev/null
@@ -57,8 +57,8 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "valgrind" ]; then
     make -j4
     make install
     cd ..
-    git clone --quiet --depth 1 https://github.com/zeromq/zyre zyre
-    cd zyre
+    git clone --quiet --depth 1 https://github.com/zeromq/zyre.git zyre.git
+    cd zyre.git
     git --no-pager log --oneline -n1
     if [ -e autogen.sh ]; then
         ./autogen.sh 2> /dev/null
