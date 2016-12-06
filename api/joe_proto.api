@@ -1,0 +1,137 @@
+<!--
+    joe_proto - joe example protocol
+
+    Codec class for joe_proto.
+
+    ** WARNING *************************************************************
+    THIS SOURCE FILE IS 100% GENERATED. If you edit this file, you will lose
+    your changes at the next build cycle. This is great for temporary printf
+    statements. DO NOT MAKE ANY CHANGES YOU WISH TO KEEP. The correct places
+    for commits are:
+
+     * The XML model used for this code generation: joe_proto.xml, or
+     * The code generation script that built this file: zproto_codec_c
+    ************************************************************************
+ -->
+<class name = "joe_proto">
+    <constant name = "hello" value = "1" />
+    <constant name = "chunk" value = "2" />
+    <constant name = "close" value = "3" />
+    <constant name = "ready" value = "4" />
+    <constant name = "error" value = "5" />
+
+<constructor>
+    Create a new empty joe_proto
+</constructor>
+
+<destructor>
+    Destroy a joe_proto instance
+</destructor>
+
+<method name = "recv">
+    Receive a joe_proto from the socket. Returns 0 if OK, -1 if
+    there was an error. Blocks if there is no message waiting.
+    <argument name = "input" type = "zsock" />
+    <return type = "integer" />
+</method>
+
+<method name = "send">
+    Send the joe_proto to the output socket, does not destroy it
+    <argument name = "output" type = "zsock" />
+    <return type = "integer" />
+</method>
+
+<method name = "print">
+    Print contents of message to stdout
+</method>
+
+<method name = "routing id">
+    Get the message routing id, as a frame
+    <return type = "zframe" />
+</method>
+
+<method name = "set routing id">
+    Set the message routing id from a frame
+    <argument name = "routing id" type = "zframe" />
+</method>
+
+<method name = "id">
+    Get the joe_proto message id
+    <return type = "integer" />
+</method>
+
+<method name = "set id">
+    Set the joe_proto message id
+    <argument name = "id" type = "integer" />
+</method>
+
+<method name = "command">
+    Get the joe_proto message id as printable text
+    <return type = "string" />
+</method>
+
+<method name = "filename">
+    Get the filename field
+    <return type = "string" />
+</method>
+<method name = "set filename">
+    Set the filename field
+    <argument name = "filename" type = "string" />
+</method>
+<method name = "aux">
+    Get a copy of the aux field
+    <return type = "zhash" />
+</method>
+<method name = "get aux">
+    Get the aux field and transfer ownership to caller
+    <return type = "zhash" />
+</method>
+    Set the aux field, transferring ownership from caller
+<method name = "set aux">
+    <argument name = "aux_p" type = "zhash" by_reference = "1" />
+</method>
+<method name = "offset">
+    Get the offset field
+    <return type = "number" size = "8" />
+</method>
+<method name = "set offset">
+    Set the offset field
+    <argument name = "offset" type = "number" size = "8" />
+</method>
+<method name = "size">
+    Get the size field
+    <return type = "number" size = "8" />
+</method>
+<method name = "set size">
+    Set the size field
+    <argument name = "size" type = "number" size = "8" />
+</method>
+<method name = "checksum">
+    Get the checksum field
+    <return type = "number" size = "8" />
+</method>
+<method name = "set checksum">
+    Set the checksum field
+    <argument name = "checksum" type = "number" size = "8" />
+</method>
+<method name = "data">
+    Get a copy of the data field
+    <return type = "zchunk" />
+</method>
+<method name = "get data">
+    Get the data field and transfer ownership to caller
+    <return type = "zchunk" />
+</method>
+    Set the data field, transferring ownership from caller
+<method name = "set data">
+    <argument name = "data_p" type = "zchunk" by_reference = "1" />
+</method>
+<method name = "reason">
+    Get the reason field
+    <return type = "string" />
+</method>
+<method name = "set reason">
+    Set the reason field
+    <argument name = "reason" type = "string" />
+</method>
+</class>
