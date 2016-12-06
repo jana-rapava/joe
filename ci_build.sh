@@ -86,7 +86,7 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "valgrind" ]; then
         exit $?
     fi
 
-    make VERBOSE=1 distcheck
+    make VERBOSE=1 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS" distcheck
     echo "=== Are GitIgnores good after 'make distcheck'? (should have no output below)"
     git status -s || true
     echo "==="
@@ -99,7 +99,7 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "valgrind" ]; then
         ./autogen.sh 2> /dev/null
         ./configure --enable-drafts=no "${CONFIG_OPTS[@]}"
         export DISTCHECK_CONFIGURE_FLAGS="--enable-drafts=no ${CONFIG_OPTS[@]}" && \
-        make VERBOSE=1 distcheck
+        make VERBOSE=1 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS" distcheck
     ) || exit 1
 
     echo "=== Are GitIgnores still good? (should have no output below)"
