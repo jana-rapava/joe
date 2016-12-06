@@ -1,0 +1,25 @@
+Name(7)
+=======
+
+
+NAME
+----
+joe - Joe example server
+
+
+SYNOPSIS
+--------
+----
+#include <joe.h>
+
+cc ['flags'] 'files' -ljoe ['libraries']
+----
+
+
+DESCRIPTION
+-----------
+
+Classes
+~~~~~~~
+
+Something.

@@ -1,0 +1,17 @@
+<project
+    name = "joe"
+    description = "Joe example server"
+    script = "zproject.gsl"
+    email = "joe@eaton.com"
+    url = "https://eaton.com/"
+    license = "MPL"
+    >
+
+    <include filename = "license.xml" />
+    <version major = "0" minor = "1" patch = "0" />
+    <use project = "czmq" />
+
+    <class name = "joe_proto" />
+    <model name = "joe_proto" codec="zproto_codec_c_v1" />
+
+</project>
