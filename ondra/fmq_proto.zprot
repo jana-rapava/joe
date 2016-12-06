@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<class
+    name = "fmq_proto"
+    signature = "0"
+    title = "File ZeroMQ transfer protocol"
+    script = "zproto_codec_c"
+    package_dir = "."
+    source_dir = "."
+    >
+
+    <message name = "HELLO" type = "string">
+        <field name = "filename" type = "string" />
+        <field name = "aux" type = "hash" />
+    </message>
+
+    <message name = "READY" >
+        <field name = "filename" type = "string" />
+    </message>
+    
+    <message name = "ERROR" >
+        <field name = "reason" type = "string" />
+    </message>
+
+</class>

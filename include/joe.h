@@ -14,6 +14,8 @@
 #ifndef JOE_H_H_INCLUDED
 #define JOE_H_H_INCLUDED
 
+#define JOE_SERVER_TEST_SERVICE_URL "tcp://127.0.0.1:5555"
+
 //  Include the project library file
 #include "joe_library.h"
 
