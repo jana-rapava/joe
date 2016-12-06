@@ -56,11 +56,16 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "valgrind" ] || [ "$BUIL
 #    CONFIG_OPTS+=("CPPFLAGS=-I${BUILD_PREFIX}/include")
 #    CONFIG_OPTS+=("CXXFLAGS=-I${BUILD_PREFIX}/include")
     CONFIG_OPTS+=("LDFLAGS=-L${BUILD_PREFIX}/lib")
+if [ "${BUILD_DRYRUN}" = yes ] ; then
+    CONFIG_OPTS+=("PKG_CONFIG_PATH=${BUILD_PREFIX}/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib/pkgconfig")
+else
     CONFIG_OPTS+=("PKG_CONFIG_PATH=${BUILD_PREFIX}/lib/pkgconfig")
+fi
     CONFIG_OPTS+=("--prefix=${BUILD_PREFIX}")
     CONFIG_OPTS+=("--with-docs=no")
     CONFIG_OPTS+=("--quiet")
 
+if [ "${BUILD_DRYRUN}" != yes ] ; then
     # Clone and build dependencies
     git clone --quiet --depth 1 https://github.com/zeromq/libzmq.git libzmq.git
     cd libzmq.git
@@ -114,6 +119,7 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "valgrind" ] || [ "$BUIL
     make -j4
     make install
     cd ..
+fi # // BUILD_DRYRUN != yes
 
     # Build and check this project
     ./autogen.sh 2> /dev/null
@@ -137,6 +143,11 @@ if [ "$BUILD_TYPE" == "default" ] || [ "$BUILD_TYPE" == "valgrind" ] || [ "$BUIL
 
     # Build and check this project without DRAFT APIs
     make distclean
+
+if [ "${BUILD_DRYRUN}" = yes ] ; then
+    exit 0
+fi
+
     git clean -f
     git reset --hard HEAD
     (
