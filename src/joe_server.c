@@ -259,9 +259,27 @@ joe_server_test (bool verbose)
     zactor_t *server = zactor_new (joes_server, "joes_server");
     zstr_sendx (server, "BIND", endpoint, NULL);
 
-    zclock_sleep (1000);
+    zsock_t *client = zsock_new_dealer (endpoint);
+    assert (client);
 
-    //    zactor_destroy (&client);
+    joe_proto_t *msg = joe_proto_new ();
+    joe_proto_set_id (msg, JOE_PROTO_HELLO);
+    joe_proto_set_filename (msg, "name");
+    joe_proto_send (msg, client);
+    
+    int r;
+    r = joe_proto_recv (msg, client);
+    assert (r == 0);
+    joe_proto_print (msg);
+
+    joe_proto_set_id (msg, JOE_PROTO_HELLO);
+    joe_proto_send (msg, client);
+    r = joe_proto_recv (msg, client);
+    assert (r == 0);
+    joe_proto_print (msg);
+
+    joe_proto_destroy (&msg);
+    zsock_destroy (&client);
     zactor_destroy (&server);
     //  @end
     printf ("OK\n");
