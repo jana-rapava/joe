@@ -1,0 +1,82 @@
+- if the variable is passed by reference, called function takes its ownership and its responsible for freeing its memory
+- if we are passed a string, we call strdup() and free our copy of the string
+- 2 classes for lists/hashtables (depending on whether we want to retain ownership of the stored structure or not)
+- for debugging: target make check-verbose
+
+actor model
+    - actor communicates that it's ready - runtime should spawn the thread
+    - actors communicate by sending messages
+    - ownership of received messages is transferred to the actor
+    - actor has to stop if it receives $TERM message from parent (by actor pipe - works only for communication from parent to the thread)
+zsock 
+    - socket(=endpoint) types
+        - push/pull:
+            - both bound to the same endpoint; communication always bidirectional
+        - router(server)/dealer(client):
+            - routing ID (first frame) must be send in the reply, otherwise we don't get the message
+GSL
+    - scripting language for processing XML files
+zproject
+    - generator of project structure
+    - includes:
+        * autotools
+        * doc
+        * include
+        * src
+        * package information...
+        * project.xml
+            - target (package information)
+            - include license
+            - zdrojak
+                - main: skripty
+                - bin: binarky
+zproto
+    = protocol mapper
+    - describe the protocol in XML file, run GSL codec to generate code processing the protocol
+    - uses different codecs to generate output files in different languages
+zproto_server_c/zproto_client_c
+    - zproto codec - generates server/client code from state diagram
+    - directly uses zproto (messages are the ones from the specified protocol_class)
+    - used for long-living services
+    - generated state machine code is in <protocol>_server/client_engine.inc - main is s_client_execute (server has more clients, each client is in different state)
+    - appplication logic is in <protocol>_server/client.c - generated at the first run, programmer then adds code which uses engine API
+    - "send" is a special action executed in a state machine (we just work with the message included in the client_t structure) 
+
+ SERVER                                                                                                                 CLIENT
+   |                                                                                                                      |
+   |                                                                                                                      |
+   |   server actor                                                                                       client actor    |
+   |-------------------------------------------------------------|--------------------------------------------------------|
+   |  |----------|--------|                |    ______________   |                      |---------------|-----------|     |
+   |  |  ^---->  | server |----------------|----|            |---|----------------------|    client     | ^----->   |     |
+   |  |  |    /  |        |                |    | socket/    |   |                      |               | |    /    |     |
+   |  |  V<--/   |        |                |    | endpoint   |   |                      |               | V<--/     |     |
+   |  ---------------------                |    --------------   |                      -----------------------------     |
+   |          engine API                   |---------------------|------------------------------- engine API -------------|
+   |-------------------------------------------------------------|  client API                                      ^\    |
+   |   /^                                                                                            VERBOSE/$TERM/   \   |
+   |  / LOAD <config>/BIND <localendpoint>/...                                                          <method>/       \  |
+   |_/                                                                                          constructor/destructor  \_|
+   |                                                                                                                      |
+ main                                                                                                                   main 
+
+    - <method>s are described in <protocol>_client.xml file + there are implicit methods constructor/destructor
+    - generated code for methods is in <protocol>_client_engine.inc
+    - method does any or several of these things:
+        - a) sends a message to a client actor
+            - this generates event in the client state machine
+        - b) waits for reply/replies from the client actor and stores them in client object
+            - each reply has reply name and one or more reply fields
+            - accepted replies are specified by the <accept> tags contained in the method
+            - reply fields are specified under the <reply> tags
+        - c) returns property to the caller
+            - in this case, method header contains attribute "return"
+    - if method does not send any message, method header contains attribute "immediate"
+    - specified method fields are accessible via self->args structure
+malamute
+    - 1.request/reply
+    - 2.publish/subscribe
+    - 3.service pattern
+    - communication between Malamute clients goes through msgpipe, accessible through mlm_client_msgpipe()
+    - unidirectional communication between Malamute clients goes through msgpipe by setting producent/consumer
+
